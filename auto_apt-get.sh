@@ -5,4 +5,4 @@ sudo apt-get update
 echo "______________________________________________________________updgrade"
 sudo apt-get -y upgrade
 echo "______________________________________________________________-f install"
-sudo apt-get install -f
+sudo apt-get -f install
