@@ -9,3 +9,4 @@ sudo apt-get -y install gcc-arm-linux-gnueabi
 sudo apt-get -y install g++-arm-linux-gnueabi
 sudo apt-get -y install u-boot-tools
 sudo apt-get -y install libncurses5-dev
+sudo apt-get -y install libc6:i386 libncurses5:i386 libstdc++6:i386
