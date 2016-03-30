@@ -1,1 +1,1 @@
-This git is my scripts
+my scripts
