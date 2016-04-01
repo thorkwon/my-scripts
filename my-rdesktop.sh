@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo rdesktop -u khg2 -k ko -g 95% -PKD $1
+sudo rdesktop -u $2 -k ko -g 95% -PKD $1
