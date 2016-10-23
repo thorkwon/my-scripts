@@ -10,6 +10,7 @@ fi
 CMD=$(sudo mount | grep odroid)
 if [ -n "$CMD" ] ; then
 	echo "Un Mount odroid"
+	sudo fuser -cu /mnt/odroid/
 	sudo umount /mnt/odroid
 fi
 
