@@ -1,6 +1,6 @@
-#bin/bash
+#!/bin/bash
 
-MSG=$(ping -W 1 -c 1 192.168.0.10 | grep ttl=64)
+MSG=$(nmap -p 22 192.168.0.10 --host-timeout .2 | grep open)
 
 if [ -n "$MSG" ]; then
 	ssh odroid@192.168.0.10
