@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# connect hdd
-sudo mount /dev/sda1 /home/Share
-mount | grep sda1
+# Find 3.7T hdd
+HDD=$(sudo fdisk -l | grep " 3.7T" | awk '{print $1}')
+
+# Connect hdd
+sudo mount $HDD /home/Share
+mount | grep "$HDD"
 
 # qbit torrent start
-sudo su - khg -c "qbittorrent-nox &"
+sudo su - thor -c "qbittorrent-nox &"
