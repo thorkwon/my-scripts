@@ -1,5 +1,12 @@
 #!/bin/bash
 
+CMD=$(file "$1" | grep UTF | wc -l)
+
+if [ $CMD == "1" ] ; then
+	echo "Already UTF-8"
+	exit 1
+fi
+
 touch "_$1"
 
 iconv -c -f euc-kr -t utf-8 "$1" > "_$1"
