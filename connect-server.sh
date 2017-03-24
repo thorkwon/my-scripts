@@ -22,5 +22,5 @@ fi
 
 echo "set user password:"
 read PWD
-sudo mount -t cifs -o user=$1,password=$PWD //192.168.0.10/Share /mnt/server
+sudo mount -t cifs -o user=$1,password=$PWD //192.168.35.10/Share /mnt/server
 echo "mount server"
