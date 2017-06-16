@@ -7,9 +7,9 @@ if [ $CMD == "1" ] ; then
 	exit 1
 fi
 
-touch "_$1"
+touch "$1_"
 
-iconv -c -f euc-kr -t utf-8 "$1" > "_$1"
+iconv -c -f euc-kr -t utf-8 "$1" > "$1_"
 
 rm -f "$1"
-mv "_$1" "$1"
+mv "$1_" "$1"
