@@ -9,3 +9,6 @@ mount | grep "$HDD"
 
 # qbit torrent start
 sudo su - thor -c "qbittorrent-nox &"
+
+# mindlna reload
+sudo service minidlna force-reload
