@@ -20,5 +20,5 @@ elif [ -z "$1" ] ; then
 	exit 1
 fi
 
-sudo mount -t cifs -o user=$1 //192.168.0.10/Share /mnt/server
+sudo mount -t cifs -o user=$1 //server/Share /mnt/server
 echo "mount server"
