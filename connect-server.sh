@@ -6,7 +6,7 @@ flag=0
 ## umount server samba
 CMD=$(sudo mount | grep server)
 if [ -n "$CMD" ] ; then
-	echo "un mount server"
+	echo "Un mount server"
 	sudo fuser -cu /mnt/server/
 	sudo umount /mnt/server
 	flag=1
@@ -21,4 +21,7 @@ elif [ -z "$1" ] ; then
 fi
 
 sudo mount -t cifs -o user=$1 //server/Share /mnt/server
-echo "mount server"
+CMD=$(sudo mount | grep server)
+if [ -n "$CMD" ] ; then
+	echo "Mount server	user[$1]"
+fi
