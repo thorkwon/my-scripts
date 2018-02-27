@@ -20,6 +20,7 @@ elif [ -z "$1" ] ; then
 	exit 1
 fi
 
+## You have to add hostname of server into '/etc/hosts'
 sudo mount -t cifs -o user=$1 //server/Share /mnt/server
 CMD=$(sudo mount | grep server)
 if [ -n "$CMD" ] ; then
