@@ -1,7 +1,21 @@
 #!/bin/bash
 
-# Find 3.7T hdd
-HDD=$(sudo fdisk -l | grep " 3.7T" | awk '{print $1}')
+# Find extra hdd
+ARR_HDD_SIZE=(" 3.7T" " 931.5G")
+HDD=
+
+for size in ${ARR_HDD_SIZE[@]}; do
+	HDD=`sudo fdisk -l | grep $size | awk '{print $1}'`
+	if [ ! -z "$HDD" ]; then
+		break
+	fi
+done
+
+if [ -z "$HDD" ]; then
+	exit 1
+fi
+
+echo "Found extra Hdd [$HDD]"
 
 # Connect hdd
 sudo mount $HDD /home/Share
