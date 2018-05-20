@@ -17,12 +17,12 @@ fi
 
 echo "Found extra Hdd [$HDD]"
 
-# Connect hdd
+# Connect extra hdd
 sudo mount $HDD /home/Share
 mount | grep "$HDD"
 
-# qbit torrent start
+# Start qbittorrent
 sudo su - thor -c "qbittorrent-nox &"
 
-# mindlna restart
+# Restart minidlna
 sudo service minidlna restart
