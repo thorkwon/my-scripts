@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check mounted share
+MO=`mount | grep Share`
+
+if [ ! -z "$MO" ]; then
+	echo "Share is already mounted."
+	exit 1
+fi
+
 # Find extra hdd
 ARR_HDD_SIZE=(" 3.7T" " 931.5G")
 HDD=
@@ -20,6 +28,7 @@ echo "Found extra Hdd [$HDD]"
 # Connect extra hdd
 sudo mount $HDD /home/Share
 mount | grep "$HDD"
+sync
 
 # Start qbittorrent
 sudo su - thor -c "qbittorrent-nox &"
