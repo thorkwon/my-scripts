@@ -29,9 +29,10 @@ echo "Found extra Hdd [$HDD]"
 sudo mount $HDD /home/Share
 mount | grep "$HDD"
 sync
-
-# Start qbittorrent
-sudo su - thor -c "qbittorrent-nox &"
+sleep 1
 
 # Restart minidlna
 sudo service minidlna restart
+
+# Start qbittorrent
+sudo su - thor -c "qbittorrent-nox &"
