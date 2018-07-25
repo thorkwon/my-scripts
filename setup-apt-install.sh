@@ -33,6 +33,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	sudo apt -y install cifs-utils
 	sudo apt -y install dkms
 	sudo apt -y install screen
+	sudo apt -y install curl
 fi
 
 # coding and compiler
