@@ -12,6 +12,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	echo "Install package for base"
 	sudo apt -y install nmap
 	sudo apt -y install hping3
+	sudo apt -y install iperf3
 	sudo apt -y install qbittorrent
 	sudo apt -y install rdesktop
 	sudo apt -y install samba
