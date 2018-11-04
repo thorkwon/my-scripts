@@ -9,10 +9,10 @@ if [ ! -z "$MO" ]; then
 fi
 
 # Find extra hdd
-ARR_HDD_SIZE=(" 3.7T" " 931.5G")
+ARR_HDD_SIZE="3.7T 931.5G"
 HDD=
 
-for size in ${ARR_HDD_SIZE[@]}; do
+for size in $ARR_HDD_SIZE; do
 	HDD=`sudo fdisk -l | grep $size | awk '{print $1}'`
 	if [ ! -z "$HDD" ]; then
 		break
