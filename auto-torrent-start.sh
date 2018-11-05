@@ -31,8 +31,8 @@ mount | grep "$HDD"
 sync
 sleep 1
 
-# Restart minidlna
-sudo service minidlna restart
+# Start minidlna
+sudo service minidlna start
 
 # Start qbittorrent
 sudo su - thor -c "qbittorrent-nox &"
