@@ -8,8 +8,9 @@
 Started : 2011/08/08
 license: GPL
 
-@version: 1.0.0
+@version: 1.1.0
 @author: Moonchang Chae <mcchae@gmail.com>
+@author: Hoegeun Kwon <hoegeun.kwon@gmail.com>
 
 
 SMI have this format!
@@ -31,10 +32,10 @@ Another subtitle demonstrating tags:
 00:00:20,000 --> 00:00:22,000  X1:40 X2:600 Y1:20 Y2:50
 Another subtitle demonstrating position.
 '''
-__author__ = "MoonChang Chae <mcchae@gmail.com>"
-__date__ = "2011/08/08"
-__version__ = "1.0.0"
-__version_info__ = (1, 0, 0)
+__author__ = "MoonChang Chae <mcchae@gmail.com>, Hoegeun Kwon <hoegeun.kwon@gmail.com>"
+__date__ = "2018/11/08"
+__version__ = "1.1.0"
+__version_info__ = (1, 1, 0)
 __license__ = "GCQVista's NDA"
 
 ###################################################################################################
@@ -48,7 +49,6 @@ def usage(msg=None, exit_code=1):
 	print_msg = """
 usage %s smifile.smi [...]
 	convert smi into srt subtitle file with same filename.
-	By MoonChang Chae <mcchae@gmail.com>
 """ % os.path.basename(sys.argv[0])
 	if msg:
 		print_msg += '%s\n' % msg
