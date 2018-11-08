@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 '''
 @package smi2srt
@@ -52,26 +52,26 @@ usage %s smifile.smi [...]
 """ % os.path.basename(sys.argv[0])
 	if msg:
 		print_msg += '%s\n' % msg
-	print print_msg
+	print(print_msg)
 	sys.exit(exit_code)
 
 ###################################################################################################
 class smiItem(object):
 	def __init__(self):
-		self.start_ms = 0L
+		self.start_ms = 0
 		self.start_ts = '00:00:00,000'
-		self.end_ms = 0L
+		self.end_ms = 0
 		self.end_ts = '00:00:00,000'
 		self.contents = None
 		self.linecount = 0
 	@staticmethod
 	def ms2ts(ms):
-		hours = ms / 3600000L
-		ms -= hours * 3600000L
-		minutes = ms / 60000L
-		ms -= minutes * 60000L
-		seconds = ms / 1000L
-		ms -= seconds * 1000L
+		hours = int(ms / 3600000)
+		ms -= int(hours * 3600000)
+		minutes = int(ms / 60000)
+		ms -= int(minutes * 60000)
+		seconds = int(ms / 1000)
+		ms -= int(seconds * 1000)
 		s = '%02d:%02d:%02d,%03d' % (hours, minutes, seconds, ms)
 		return s
 	def convertSrt(self):
@@ -115,18 +115,19 @@ def convertSMI(smi_file):
 	rndx = smi_file.rfind('.')
 	srt_file = '%s.srt' % smi_file[0:rndx]
 
-	ifp = open(smi_file)
-	smi_sgml = ifp.read()#.upper()
-	ifp.close()
-	chdt = chardet.detect(smi_sgml)
-	if chdt['encoding'] != 'UTF-8':
-		smi_sgml = unicode(smi_sgml, chdt['encoding'].lower()).encode('utf-8')
+	codecs = ['UTF-8', 'EUC-KR']
+	for i in codecs:
+		with open(smi_file, 'rb') as ifp:
+			try:
+				smi_sgml = ifp.read().decode(i)
+			except UnicodeDecodeError as e:
+				continue
+		break
 
 	# skip to first starting tag (skip first 0xff 0xfe ...)
 	try:
 		fndx = smi_sgml.find('<SYNC')
-	except Exception, e:
-		print chdt
+	except Exception as e:
 		raise e
 	if fndx < 0:
 		return False
@@ -148,29 +149,28 @@ def convertSMI(smi_file):
 			sync_cont += line[0:sndx]
 			last_si = si
 			if last_si != None:
-				last_si.end_ms = long(m.group(1))
+				last_si.end_ms = int(m.group(1))
 				last_si.contents = sync_cont
 				srt_list.append(last_si)
 				last_si.linecount = linecnt
 				#print '[%06d] %s' % (linecnt, last_si)
 			sync_cont = m.group(2)
 			si = smiItem()
-			si.start_ms = long(m.group(1))
+			si.start_ms = int(m.group(1))
 		else:
 			sync_cont += line
 
-	ofp = open(srt_file, 'w')
-	ndx = 1
-	for si in srt_list:
-		si.convertSrt()
-		if si.contents == None or len(si.contents) <= 0:
-			continue
-		#print si
-		sistr = '%d\n%s --> %s\n%s\n\n' % (ndx, si.start_ts, si.end_ts, si.contents)
-		#sistr = unicode(sistr, 'utf-8').encode('euc-kr')
-		ofp.write(sistr)
-		ndx += 1
-	ofp.close()
+	with open(srt_file, 'w') as ofp:
+		ndx = 1
+		for si in srt_list:
+			si.convertSrt()
+			if si.contents == None or len(si.contents) <= 0:
+				continue
+			#print si
+			sistr = '%d\n%s --> %s\n%s\n\n' % (ndx, si.start_ts, si.end_ts, si.contents)
+			#sistr = unicode(sistr, 'utf-8').encode('euc-kr')
+			ofp.write(sistr)
+			ndx += 1
 	return True
 
 ###################################################################################################
@@ -179,9 +179,9 @@ def doConvert():
 		usage()
 	for smi_file in sys.argv[1:]:
 		if convertSMI(smi_file):
-			print "Converting <%s> OK!" % smi_file
+			print("Converting <%s> OK!" % smi_file)
 		else:
-			print "Converting <%s> Failture!" % smi_file
+			print("Converting <%s> Failture!" % smi_file)
 
 ###################################################################################################
 if __name__ == '__main__':

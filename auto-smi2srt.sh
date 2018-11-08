@@ -12,5 +12,5 @@ find $FindRoot -name '[^.]*.smi' | while read line; do
 		continue
 	fi
 
-	python smi2srt.py "$line"
+	python3 smi2srt.py "$line"
 done
