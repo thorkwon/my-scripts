@@ -115,7 +115,7 @@ def convertSMI(smi_file):
 	rndx = smi_file.rfind('.')
 	srt_file = '%s.srt' % smi_file[0:rndx]
 
-	codecs = ['UTF-8', 'EUC-KR']
+	codecs = ['UTF-8', 'EUC-KR', 'CP949', 'UTF-16']
 	for i in codecs:
 		with open(smi_file, 'rb') as ifp:
 			try:
