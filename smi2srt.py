@@ -145,7 +145,9 @@ def convertSMI(smi_file):
 		if sndx >= 0:
 			m = re.search(r'<sync\s+start\s*=\s*(\d+)>(.*)$', line, flags=re.IGNORECASE)
 			if not m:
-				raise Exception('Invalid format tag of <Sync start=nnnn> with "%s"' % line)
+				print(">>>>>>>>>> Error smi file: [{}]".format(smi_file))
+				print("Invalid format tag of <Sync start=nnnn> with {}".format(line))
+				return False
 			sync_cont += line[0:sndx]
 			last_si = si
 			if last_si != None:
