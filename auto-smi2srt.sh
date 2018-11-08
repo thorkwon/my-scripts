@@ -6,11 +6,14 @@ if [ $# != 1 ]; then
 	exit 1
 fi
 
+SCRIPT=`realpath $0`
+SCRIPTPATH=`dirname $SCRIPT`
+
 FindRoot=$1
 find $FindRoot -name '[^.]*.smi' | while read line; do
 	if [ -f "${line%.smi}.srt" ]; then
 		continue
 	fi
 
-	python3 smi2srt.py "$line"
+	python3 ${SCRIPTPATH}/smi2srt.py "$line"
 done
