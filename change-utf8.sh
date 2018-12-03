@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# == 0 ]; then
-	echo "Usage: change-utf8.sh [filename]"
+	echo "Usage: change-utf8.sh <filename>"
 	exit 1
 fi
 

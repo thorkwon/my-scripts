@@ -9,7 +9,7 @@ if ! [ -f "${SCRIPTPATH}/server.list" ]; then
 fi
 
 if [ $# == 0 ]; then
-	echo "Usage: ./cmd-remote.sh [cmd]"
+	echo "Usage: cmd-remote.sh <cmd>"
 	exit 1
 fi
 

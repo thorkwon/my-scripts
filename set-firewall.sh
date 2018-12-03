@@ -1,8 +1,8 @@
 #!/bin/bash
 
 help() {
-	echo "Usage: set-firewall-rule.sh -I [ip ...]"
-	echo "       set-firewall-rule.sh -D [ip ...]"
+	echo "Usage: set-firewall-rule.sh -I <ip ...>"
+	echo "       set-firewall-rule.sh -D <ip ...>"
 	echo "       set-firewall-rule.sh -D all"
 	echo "Options:"
 	echo "  -I        insert firewall reject rules for IP"
