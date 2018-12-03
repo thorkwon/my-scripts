@@ -24,11 +24,8 @@ if [ "$ROOT_PW" == "" ]; then
 else
 	CMD="echo $ROOT_PW | sudo -S"
 
+	set -- "${@:2:$#}"
 	for token in $@; do
-		if [ "$token" == "$1" ]; then
-			continue
-		fi
-
 		CMD="$CMD"$' '"$token"
 	done
 fi
