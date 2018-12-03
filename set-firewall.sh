@@ -1,13 +1,23 @@
 #!/bin/bash
 
+# Readme
+# If you want use this script, modify the '/etc/fail2ban/action.d/iptables-common.conf' file as follows.
+#
+# In the iptables-common.conf:
+# comment the line
+# blocktype = REJECT --reject-with icmp-port-unreachable
+#
+# create the line
+# blocktype = DROP
+
 help() {
 	echo "Usage: set-firewall-rule.sh -I <ip ...>"
 	echo "       set-firewall-rule.sh -D <ip ...>"
 	echo "       set-firewall-rule.sh -D all"
 	echo "Options:"
-	echo "  -I        insert firewall reject rules for IP"
-	echo "  -D        delete firewall reject rules for IP"
-	echo "  -D all    delete firewall reject rules for applied IPs"
+	echo "  -I        insert firewall drop rules for IP"
+	echo "  -D        delete firewall drop rules for IP"
+	echo "  -D all    delete firewall drop rules for applied IPs"
 	exit 1
 }
 
@@ -40,17 +50,17 @@ while getopts "I:D:" opt; do
 		for ip in $@; do
 			is_ip $ip
 			if [ $ret == 0 ]; then
-				sudo iptables -I f2b-sshd 1 -s $ip -j REJECT
-				echo "REJECT [$ip]"
+				sudo iptables -I f2b-sshd 1 -s $ip -j DROP
+				echo "DROP [$ip]"
 			fi
 		done
 		;;
 	D)
 		if [ "$2" == "all" ]; then
-			echo "Delete all reject rules"
-			ip_list=`sudo iptables -nvL | grep REJECT | awk '{print $8}'`
+			echo "Delete all drop rules"
+			ip_list=`sudo iptables -nvL | grep DROP | awk '{print $8}'`
 			for ip in $ip_list; do
-				sudo iptables -D f2b-sshd -s $ip -j REJECT
+				sudo iptables -D f2b-sshd -s $ip -j DROP
 			done
 			break
 		fi
@@ -59,7 +69,7 @@ while getopts "I:D:" opt; do
 		for ip in $@; do
 			is_ip $ip
 			if [ $ret == 0 ]; then
-				sudo iptables -D f2b-sshd -s $ip -j REJECT
+				sudo iptables -D f2b-sshd -s $ip -j DROP
 			fi
 		done
 		;;
