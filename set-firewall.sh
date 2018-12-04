@@ -45,36 +45,37 @@ fi
 
 while getopts "I:D:" opt; do
 	case $opt in
-	I)
-		set -- "${@:2:$#}"
-		for ip in $@; do
-			is_ip $ip
-			if [ $ret == 0 ]; then
-				sudo iptables -I f2b-sshd 1 -s $ip -j DROP
-				echo "DROP [$ip]"
-			fi
-		done
-		;;
-	D)
-		if [ "$2" == "all" ]; then
-			echo "Delete all drop rules"
-			ip_list=`sudo iptables -nvL | grep DROP | awk '{print $8}'`
-			for ip in $ip_list; do
-				sudo iptables -D f2b-sshd -s $ip -j DROP
+		I)
+			set -- "${@:2:$#}"
+			for ip in $@; do
+				is_ip $ip
+				if [ $ret == 0 ]; then
+					sudo iptables -I f2b-sshd 1 -s $ip -j DROP
+					echo "DROP [$ip]"
+				fi
 			done
-			break
-		fi
-
-		set -- "${@:2:$#}"
-		for ip in $@; do
-			is_ip $ip
-			if [ $ret == 0 ]; then
-				sudo iptables -D f2b-sshd -s $ip -j DROP
+			;;
+		D)
+			if [ "$2" == "all" ]; then
+				echo "Delete all drop rules"
+				ip_list=`sudo iptables -nvL | grep DROP | awk '{print $8}'`
+				for ip in $ip_list; do
+					sudo iptables -D f2b-sshd -s $ip -j DROP
+				done
+				break
 			fi
-		done
-		;;
-	?)
-		help ;;
+
+			set -- "${@:2:$#}"
+			for ip in $@; do
+				is_ip $ip
+				if [ $ret == 0 ]; then
+					sudo iptables -D f2b-sshd -s $ip -j DROP
+				fi
+			done
+			;;
+		*)
+			help
+			;;
 	esac
 done
 
