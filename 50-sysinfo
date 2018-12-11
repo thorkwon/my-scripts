@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script permission have to 755.
+# It is used in /etc/update-motd.d.
+# Follow this:
+#   cd /etc/update-motd.d/; ln -s <SCRIPT_PATH> ./
+
+TOTAL_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
+UNUSED_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $4}'`
+USED_MEM_PER=`expr 100 '-' '(' ${UNUSED_MEM} '*' 100 '/' ${TOTAL_MEM} ')'`
+
+echo -e ""
+echo -e " * `uptime -p`"
+echo -en " * Memory usage\t\t${USED_MEM_PER}%\n"
+echo -en " * Free memory\t\t`expr ${UNUSED_MEM} '/' 1024`M of"
+echo -en " `echo "${TOTAL_MEM} / 1024 / 1024" | bc -l | awk '{printf "%.1f", $1}'`G\n"
