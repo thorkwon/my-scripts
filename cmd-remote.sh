@@ -14,7 +14,7 @@ if [ $# == 0 ]; then
 fi
 
 ROOT_PW=""
-if [ "$1" == "sudo" ]; then
+if [[ "$1" == "sudo"* ]]; then
 	echo "[sudo] password:"
 	read -s ROOT_PW
 fi
@@ -24,7 +24,6 @@ if [ "$ROOT_PW" == "" ]; then
 else
 	CMD="echo $ROOT_PW | sudo -S"
 
-	set -- "${@:2:$#}"
 	for token in $@; do
 		CMD="$CMD"$' '"$token"
 	done
