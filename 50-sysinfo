@@ -5,12 +5,19 @@
 # Follow this:
 #   cd /etc/update-motd.d/; ln -s <SCRIPT_PATH> ./
 
-TOTAL_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
-UNUSED_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $4}'`
-USED_MEM_PER=`expr 100 '-' '(' ${UNUSED_MEM} '*' 100 '/' ${TOTAL_MEM} ')'`
-
 echo -e ""
 echo -e " * `uptime -p`"
-echo -en " * Memory usage\t\t${USED_MEM_PER}%\n"
-echo -en " * Free memory\t\t`expr ${UNUSED_MEM} '/' 1024`M of"
-echo -en " `echo "${TOTAL_MEM} / 1024 / 1024" | bc -l | awk '{printf "%.1f", $1}'`G\n"
+
+MIN_VER="3.3.10"
+FREE_VER="`free -V | awk '{print $4}'`"
+if [ "`printf "%s\n" "$MIN_VER" "$FREE_VER" | sort -V | head -n1`" == "$MIN_VER" ]; then
+	TOTAL_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
+	AVAILABLE_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $7}'`
+	USED_MEM_PER=`expr 100 '-' '(' ${AVAILABLE_MEM} '*' 100 '/' ${TOTAL_MEM} ')'`
+
+	TOTAL_MEM=`free -h | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
+	AVAILABLE_MEM=`free -h | grep -v total | grep -v Swap | grep -v buff | awk '{print $7}'`
+
+	echo -e " * Memory usage    \t${USED_MEM_PER}%"
+	echo -e " * Available memory\t${AVAILABLE_MEM} of ${TOTAL_MEM}"
+fi
