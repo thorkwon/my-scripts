@@ -5,4 +5,7 @@ if [ -z $1 ] | [ -z $2 ]; then
 	exit 1
 fi
 
-sudo rdesktop -u $2 -k ko -g 96% -PKD $1
+IP=$1
+USER=$2
+
+sudo rdesktop -u $USER -k ko -g 97% -a 16 -PKD $IP
