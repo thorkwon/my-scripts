@@ -21,5 +21,6 @@ find "$FindRoot" -name '[^.]*.smi' | while read line; do
 	GROUP=`ls -l "$line" | awk '{print $4}'`
 	if [ -f "${line%.smi}.srt" ]; then
 		sudo chown $USER:$GROUP "${line%.smi}.srt"
+		sudo mv "${line}" "${line}.backup"
 	fi
 done
