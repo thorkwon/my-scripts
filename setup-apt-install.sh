@@ -11,16 +11,24 @@ USED_GNOME_VER="18.00"
 RELEASE_VER=`lsb_release -r -s`
 if [ "`printf "%s\n" "$USED_GNOME_VER" "$RELEASE_VER" | sort -V | head -n1`" == "$USED_GNOME_VER" ]; then
 	echo "Release version $RELEASE_VER"
+	FLAG_USED_GNOME=1
 	sudo apt -y install gnome-tweak-tool
 	sudo apt -y install ubuntu-restricted-extras
 	sudo apt -y install net-tools
 	sudo apt -y install chrome-gnome-shell
 	sudo apt -y install x11-utils gnome-shell-extension-dashtodock
+else
+	echo "Release version $RELEASE_VER"
+	FLAG_USED_GNOME=0
 fi
 
 # base
 if [ "$1" == "base" -o "$1" == "all" ]; then
 	echo "Install package for base"
+	sudo add-apt-repository ppa:dawidd0811/neofetch
+	sudo find /etc/apt/ -name "*.save" -exec rm {} \;
+	sudo apt -y install neofetch
+
 	sudo apt -y install nmap
 	sudo apt -y install hping3
 	sudo apt -y install iperf3
