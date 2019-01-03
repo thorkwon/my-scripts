@@ -24,11 +24,16 @@ fi
 
 # base
 if [ "$1" == "base" -o "$1" == "all" ]; then
-	echo "Install package for base"
+	echo "Add apt repo"
 	sudo add-apt-repository ppa:dawidd0811/neofetch
 	sudo find /etc/apt/ -name "*.save" -exec rm {} \;
-	sudo apt -y install neofetch
 
+	if [ $FLAG_USED_GNOME == 0 ]; then
+		sudo apt update
+	fi
+
+	echo "Install package for base"
+	sudo apt -y install neofetch
 	sudo apt -y install nmap
 	sudo apt -y install hping3
 	sudo apt -y install iperf3
