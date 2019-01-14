@@ -77,6 +77,8 @@ if [ "$1" == "all" ]; then
 	sudo apt -y install g++-arm-linux-gnueabi
 	sudo apt -y install gcc-arm-linux-gnueabi
 	sudo apt -y install device-tree-compiler
+	sudo apt -y install flex
+	sudo apt -y install bison
 	sudo apt -y install lthor
 	sudo apt -y install minicom
 	sudo apt -y install android-tools
