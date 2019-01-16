@@ -59,6 +59,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	sudo apt -y install screen
 	sudo apt -y install curl
 	sudo apt -y install fcitx-hangul
+	sudo apt -y install aria2
 
 	sudo apt -y install cmake
 	sudo apt -y install autoconf
