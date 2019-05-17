@@ -62,6 +62,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	curl
 	fcitx-hangul
 	aria2
+	ffmpeg
 
 	cmake
 	autoconf
