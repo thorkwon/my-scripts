@@ -8,4 +8,4 @@ fi
 IP=$1
 USER=$2
 
-sudo rdesktop -u $USER -k ko -g 98% -a 16 -PKD $IP
+sudo rdesktop -u $USER -k ko -g 97% -a 16 -PKD $IP
