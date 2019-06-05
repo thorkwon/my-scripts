@@ -88,13 +88,11 @@ if [ "$1" == "all" ]; then
 	bison
 	lthor
 	minicom
-	android-tools
 	android-tools-adb android-tools-fastboot
 	libqt4-dev libncurses5-dev
 	curlftpfs
 	emdebian-archive-keyring
 	fbterm
-	ia32-libs-multiarch
 	lzop
 	"
 	sudo apt -y install $PKG_LISTS
