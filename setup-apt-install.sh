@@ -3,7 +3,7 @@
 # init apt install for ubuntu 16.04 or 18.04
 
 if [ -z "$1" ]; then
-	echo "Usage: setup-apt-install.sh <base | all>"
+	echo "Usage: $0 <base | all>"
 	exit 1
 fi
 

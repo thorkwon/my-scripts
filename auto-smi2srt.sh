@@ -2,7 +2,7 @@
 # Find SMI file recursively script by Taylor Starfield
 
 if [ $# != 1 ]; then
-	echo "Usage: auto-smi2srt.sh <filename | directory>"
+	echo "Usage: $0 <filename | directory>"
 	exit 1
 fi
 

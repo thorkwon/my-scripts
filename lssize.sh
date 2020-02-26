@@ -1,7 +1,7 @@
 #!/bin/bash
 
 help() {
-	echo "Usage: lssize.sh [OPTION]"
+	echo "Usage: $0 [OPTION]"
 	echo "Options:"
 	echo "  -t		sort by modification time, newest first"
 	echo "  -h		display this help"

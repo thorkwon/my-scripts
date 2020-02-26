@@ -11,9 +11,9 @@
 # blocktype = DROP
 
 help() {
-	echo "Usage: set-firewall-rule.sh -I <ip ...>"
-	echo "       set-firewall-rule.sh -D <ip ...>"
-	echo "       set-firewall-rule.sh -D all"
+	echo "Usage: $0 -I <ip ...>"
+	echo "       $0 -D <ip ...>"
+	echo "       $0 -D all"
 	echo "Options:"
 	echo "  -I        insert firewall drop rules for IP"
 	echo "  -D        delete firewall drop rules for IP"
