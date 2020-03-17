@@ -14,6 +14,6 @@ sudo kill -9 $TORRENT
 echo "Stop torrent server"
 
 # umount hdd
-sudo fuser -cu /home/Share
+sudo fuser -ku /home/Share
 sudo umount /home/Share
 echo "Umount hdd"
