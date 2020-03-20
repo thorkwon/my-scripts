@@ -1,18 +1,29 @@
 #!/bin/bash
 
+function set_ifs()
+{
+	# Backup env IFS and then set IFS to newline
+	IFS_BACKUP="$IFS"
+	IFS=$'\n'
+}
+
+function restore_ifs()
+{
+	# Restore IFS
+	IFS=$IFS_BACKUP
+}
+
 function help()
 {
 	echo "Usage: $0 [OPTION]"
 	echo "Options:"
 	echo "  -t		sort by modification time, newest first"
 	echo "  -h		display this help"
+	restore_ifs
 	exit 1
 }
 
-# Backup env IFS and then set IFS to newline
-IFS_BACKUP="$IFS"
-IFS=$'\n'
-
+set_ifs
 ARR_LIST=(`ls -1`)
 while getopts "th" opt; do
 	case $opt in
@@ -21,6 +32,9 @@ while getopts "th" opt; do
 			;;
 		h)
 			help
+			;;
+		th)
+			echo "th"
 			;;
 		*)
 			help
@@ -32,5 +46,4 @@ for list in ${ARR_LIST[@]}; do
 	du -sh "$list"
 done
 
-# Restore IFS
-IFS=$IFS_BACKUP
+restore_ifs
