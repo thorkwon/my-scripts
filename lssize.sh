@@ -1,6 +1,7 @@
 #!/bin/bash
 
-help() {
+function help()
+{
 	echo "Usage: $0 [OPTION]"
 	echo "Options:"
 	echo "  -t		sort by modification time, newest first"

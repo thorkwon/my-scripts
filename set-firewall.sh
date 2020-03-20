@@ -10,7 +10,8 @@
 # create the line
 # blocktype = DROP
 
-help() {
+function help()
+{
 	echo "Usage: $0 -I <ip ...>"
 	echo "       $0 -D <ip ...>"
 	echo "       $0 -D all"
@@ -21,7 +22,8 @@ help() {
 	exit 1
 }
 
-is_ip() {
+function is_ip()
+{
 	cmd=`ping -c1 -w1 $1 2>&1 | grep statistics`
 	if [ -z "$cmd" ]; then
 		echo "It is not IP [$1]"
