@@ -36,3 +36,6 @@ sudo service minidlna start
 
 # Start qbittorrent
 sudo su - thor -c "qbittorrent-nox &"
+
+# Start apache2
+sudo service apache2 start

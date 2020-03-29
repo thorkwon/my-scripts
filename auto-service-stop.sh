@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# stop apache2
+sudo service apache2 stop
+echo "Stop apache2 server"
+
 # stop dlna server
 sudo service minidlna stop
 echo "Stop dlna server"
