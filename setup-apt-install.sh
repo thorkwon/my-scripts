@@ -46,6 +46,8 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	ssh
 	terminator
 	vim
+	vim-nox
+	vim-gtk3
 	vlc
 	xclip
 	git
