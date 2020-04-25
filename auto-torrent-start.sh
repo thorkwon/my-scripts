@@ -32,10 +32,19 @@ sync
 sleep 1
 
 # Start minidlna
-sudo service minidlna start
+CMD=`systemctl is-enabled minidlna 2>&1 | grep Failed`
+if [ -z "$CMD" ]; then
+	sudo service minidlna start
+fi
 
 # Start qbittorrent
-sudo su - thor -c "qbittorrent-nox &"
+CMD=`ls /usr/bin/qbittorrent-nox 2>&1 | grep "No such"`
+if [ -z "$CMD" ]; then
+	sudo su - thor -c "qbittorrent-nox &"
+fi
 
 # Start apache2
-sudo service apache2 start
+CMD=`systemctl is-enabled apache2 2>&1 | grep Failed`
+if [ -z "$CMD" ]; then
+	sudo service apache2 start
+fi
