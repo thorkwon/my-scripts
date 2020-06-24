@@ -66,6 +66,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	aria2
 	ffmpeg
 	speedtest-cli
+	zsh
 
 	cmake
 	autoconf
