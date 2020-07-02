@@ -48,3 +48,9 @@ CMD=`systemctl is-enabled apache2 2>&1 | grep Failed`
 if [ -z "$CMD" ]; then
 	sudo service apache2 start
 fi
+
+# Start netatalk afp
+CMD=`systemctl is-enabled netatalk 2>&1 | grep Failed`
+if [ -z "$CMD" ]; then
+	sudo service netatalk start
+fi

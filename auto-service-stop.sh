@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# stop netatalk afp
+CMD=`systemctl is-enabled netatalk 2>&1 | grep Failed`
+if [ -z "$CMD" ]; then
+	sudo service netatalk stop
+	echo "Stop netatalk server"
+fi
+
 # stop apache2
 CMD=`systemctl is-enabled apache2 2>&1 | grep Failed`
 if [ -z "$CMD" ]; then
