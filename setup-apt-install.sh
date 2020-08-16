@@ -67,6 +67,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 	ffmpeg
 	speedtest-cli
 	zsh
+	htop
 
 	cmake
 	autoconf
