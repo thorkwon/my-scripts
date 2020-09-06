@@ -88,8 +88,7 @@ function status_service()
 	for ser in ${LIST_SERVICE[@]}; do
 		local CMD=`systemctl is-enabled ${ser} 2>&1 | grep Failed`
 		if [ -z "$CMD" ]; then
-			echo "${ser}.service"
-			systemctl status ${ser} | grep Active
+			systemctl status ${ser} | grep -B8 Active:
 			echo ""
 		fi
 	done
