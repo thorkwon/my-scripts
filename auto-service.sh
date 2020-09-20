@@ -4,8 +4,9 @@ function help()
 {
 	echo "Usage: $0 command"
 	echo "Command:"
-	echo "  start     service restart"
+	echo "  start     service start"
 	echo "  stop      service stop"
+	echo "  restart   service restart"
 	echo "  status    service status"
 	exit 1
 }
@@ -48,8 +49,7 @@ function umount_hdd()
 {
 	# umount hdd
 	sudo fuser -ku /home/Share
-	sudo umount /home/Share
-	echo "Umount hdd"
+	sudo umount /home/Share && echo "Umount hdd"
 }
 
 function start_service()
@@ -116,6 +116,12 @@ case $1 in
 	stop)
 		stop_service "${LIST_SERVICE[@]}"
 		umount_hdd
+		;;
+	restart)
+		stop_service "${LIST_SERVICE[@]}"
+		umount_hdd
+		mount_hdd
+		start_service "${LIST_SERVICE[@]}"
 		;;
 	status)
 		status_service "${LIST_SERVICE[@]}"
