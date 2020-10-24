@@ -59,7 +59,7 @@ function start_service()
 	for ser in ${LIST_SERVICE[@]}; do
 		local CMD=`systemctl is-enabled ${ser} 2>&1 | grep Failed`
 		if [ -z "$CMD" ]; then
-			sudo systemctl restart ${ser}
+			sudo systemctl start ${ser}
 			echo "Start ${ser}"
 		fi
 	done
