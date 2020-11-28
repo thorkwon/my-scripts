@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Readme
 # If you want use this script, modify the '/etc/fail2ban/action.d/iptables-common.conf' file as follows.

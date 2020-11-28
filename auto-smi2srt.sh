@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Find SMI file recursively script by Taylor Starfield
 
 if [ $# != 1 ]; then

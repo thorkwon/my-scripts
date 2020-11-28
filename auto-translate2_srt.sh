@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # English srt subtitles to Korean srt translation.
 
 if [ $# != 1 ]; then

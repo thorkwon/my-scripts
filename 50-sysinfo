@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This script permission have to 755.
 # It is used in /etc/update-motd.d.

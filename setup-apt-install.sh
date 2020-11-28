@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # init apt install for ubuntu 16.04 or 18.04
 

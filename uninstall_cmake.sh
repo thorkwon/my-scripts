@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 INSTALL_LIST="install_manifest.txt"
 
