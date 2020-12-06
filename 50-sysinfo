@@ -1,23 +1,92 @@
 #!/usr/bin/env bash
 
+# When someone uses this script on Linux
 # This script permission have to 755.
 # It is used in /etc/update-motd.d.
 # Follow this:
 #   cd /etc/update-motd.d/; ln -s <SCRIPT_PATH> ./
 
-echo -e ""
-echo -e " * `uptime -p`"
+OS=$(uname)
 
-MIN_VER="3.3.10"
-FREE_VER="`free -V | awk '{print $4}'`"
-if [ "`printf "%s\n" "$MIN_VER" "$FREE_VER" | sort -V | head -n1`" == "$MIN_VER" ]; then
-	TOTAL_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
-	AVAILABLE_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $7}'`
-	USED_MEM_PER=`expr 100 '-' '(' ${AVAILABLE_MEM} '*' 100 '/' ${TOTAL_MEM} ')'`
+function get_uptime() {
+	# Get uptime in seconds.
+	local s=""
+	local boot=""
+	local now=""
 
-	TOTAL_MEM=`free -h | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}'`
-	AVAILABLE_MEM=`free -h | grep -v total | grep -v Swap | grep -v buff | awk '{print $7}'`
+	case $OS in
+		Linux)
+			if [[ -r /proc/uptime ]]; then
+				s=$(< /proc/uptime)
+				s=${s/.*}
+			else
+				boot=$(date -d"$(uptime -s)" +%s)
+				now=$(date +%s)
+				s=$((now - boot))
+			fi
+			;;
+		Darwin)
+			boot=$(sysctl -n kern.boottime)
+			boot=${boot/\{ sec = }
+			boot=${boot/,*}
+
+			# Get current date in seconds.
+			now=$(date +%s)
+			s=$((now - boot))
+			;;
+	esac
+
+	local d="$((s / 60 / 60 / 24)) days"
+	local h="$((s / 60 / 60 % 24)) hours"
+	local m="$((s / 60 % 60)) minutes"
+
+	# Remove plural if < 2.
+	((${d/ *} == 1)) && d=${d/s}
+	((${h/ *} == 1)) && h=${h/s}
+	((${m/ *} == 1)) && m=${m/s}
+
+	# Hide empty fields.
+	((${d/ *} == 0)) && unset d
+	((${h/ *} == 0)) && unset h
+	((${m/ *} == 0)) && unset m
+
+	local uptime=${d:+$d, }${h:+$h, }$m
+	uptime=${uptime%', '}
+	uptime=${uptime:-$s seconds}
+	echo " * up $uptime"
+}
+
+function get_mem_info() {
+	case $OS in
+		Linux)
+			local TOTAL_MEM=$(free | grep -v total | grep -v Swap | grep -v buff | awk '{print $2}')
+			local AVAILABLE_MEM=`free | grep -v total | grep -v Swap | grep -v buff | awk '{print $7}'`
+
+			local USED_MEM_PER=$(expr 100 '-' '(' ${AVAILABLE_MEM} '*' 100 '/' ${TOTAL_MEM} ')')
+			AVAILABLE_MEM=$(echo $AVAILABLE_MEM | awk '{printf "%.1f", $1/1024/1024}')
+			TOTAL_MEM=$(echo $TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024}')
+			;;
+		Darwin)
+			local FREE_BLOCKS=$(vm_stat | grep free | awk '{ print $3 }' | sed 's/\.//')
+			local INACTIVE_BLOCKS=$(vm_stat | grep inactive | awk '{ print $3 }' | sed 's/\.//')
+			local SPECULATIVE_BLOCKS=$(vm_stat | grep speculative | awk '{ print $3 }' | sed 's/\.//')
+
+			local FREE_MEM=$((($FREE_BLOCKS+SPECULATIVE_BLOCKS)*4096))
+			local INACTIVE_MEM=$(($INACTIVE_BLOCKS*4096))
+
+			local FREE_TOTAL_MEM=$(($FREE_MEM+$INACTIVE_MEM))
+			local TOTAL_MEM=$(sysctl -n hw.memsize)
+
+			local USED_MEM_PER=$(expr 100 '-' '(' ${FREE_TOTAL_MEM} '*' 100 '/' ${TOTAL_MEM} ')')
+			local AVAILABLE_MEM=$(echo $FREE_TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024/1024}')
+			TOTAL_MEM=$(echo $TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024/1024}')
+			;;
+	esac
 
 	echo -e " * Memory usage    \t${USED_MEM_PER}%"
-	echo -e " * Available memory\t${AVAILABLE_MEM} of ${TOTAL_MEM}"
-fi
+	echo -e " * Available memory\t${AVAILABLE_MEM}G of ${TOTAL_MEM}G"
+}
+
+echo -e ""
+get_uptime
+get_mem_info
