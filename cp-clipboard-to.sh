@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ $# == 0 ]; then
+if [ $# -eq 0 ]; then
 	echo "Usage: $0 <DST>"
 	exit 1
 fi
