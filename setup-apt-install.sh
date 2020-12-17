@@ -24,12 +24,12 @@ else
 fi
 
 # base
-if [ "$1" == "base" -o "$1" == "all" ]; then
+if [ "$1" = "base" -o "$1" = "all" ]; then
 	echo "Add apt repo"
 	sudo add-apt-repository ppa:dawidd0811/neofetch
 	sudo find /etc/apt/ -name "*.save" -exec rm {} \;
 
-	if [ $FLAG_USED_GNOME == 0 ]; then
+	if [ $FLAG_USED_GNOME -eq 0 ]; then
 		sudo apt update
 	fi
 
@@ -83,7 +83,7 @@ if [ "$1" == "base" -o "$1" == "all" ]; then
 fi
 
 # coding and compiler
-if [ "$1" == "all" ]; then
+if [ "$1" = "all" ]; then
 	echo "Install package for coding"
 	PKG_LISTS="
 	g++-arm-linux-gnueabi
