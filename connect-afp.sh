@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OS=`uname`
-if ! [ "$OS" == "Darwin" ]; then
+if ! [ "$OS" = "Darwin" ]; then
 	exit 0
 fi
 
@@ -23,16 +23,16 @@ if [ -n "$CMD" ] ; then
 fi
 
 # check the afp server
-if [ $FLAG == 1 -a $# == 0 ]; then
+if [ $FLAG -eq 1 -a $# -eq 0 ]; then
 	exit 1
-elif [ $# == 0 ]; then
+elif [ $# -eq 0 ]; then
 	echo "Enter the afp server"
 	exit 1
 fi
 SERVER=$1
 
 # check the user id
-if [ $# == 2 ]; then
+if [ $# -eq 2 ]; then
 	ID=$2
 else
 	ID=`id -un`
