@@ -8,7 +8,7 @@ if ! [ -f "${SCRIPTPATH}/server.list" ]; then
 	exit 1
 fi
 
-if [ $# == 0 ]; then
+if [ $# -eq 0 ]; then
 	echo "Usage: $0 <cmd>"
 	exit 1
 fi
@@ -19,7 +19,7 @@ if [[ "$1" == "sudo"* ]]; then
 	read -s ROOT_PW
 fi
 
-if [ "$ROOT_PW" == "" ]; then
+if [ "$ROOT_PW" = "" ]; then
 	CMD=$@
 else
 	CMD="echo $ROOT_PW | sudo -S"
