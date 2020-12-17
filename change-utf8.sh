@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ $# == 0 ]; then
+if [ $# -eq 0 ]; then
 	echo "Usage: $0 <filename>"
 	exit 1
 fi
@@ -13,7 +13,7 @@ if ! [ -f "$FILE_NAME" ]; then
 fi
 
 CMD=`file "$FILE_NAME" | grep UTF | wc -l`
-if [ $CMD == 1 ]; then
+if [ $CMD -eq 1 ]; then
 	echo -e "Already UTF-8\t[$FILE_NAME]"
 	exit 1
 fi
