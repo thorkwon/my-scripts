@@ -104,7 +104,7 @@ fi
 
 LIST_SERVICE="`cat ${SCRIPTPATH}/service.list`"
 
-if [ $# == 0 ]; then
+if [ $# -eq 0 ]; then
 	help
 fi
 
