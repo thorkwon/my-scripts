@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+SCRIPT=`realpath $0`
+SCRIPTPATH=`dirname $SCRIPT`
+
 function help()
 {
 	echo "Usage: $0 command"
@@ -9,6 +12,15 @@ function help()
 	echo "  restart   service restart"
 	echo "  status    service status"
 	exit 1
+}
+
+function get_uuid()
+{
+	local UUID=""
+	if [ -f ${SCRIPTPATH}/$1 ]; then
+		UUID=$(cat ${SCRIPTPATH}/$1)
+		echo "$UUID"
+	fi
 }
 
 function mount_hdd()
@@ -22,20 +34,22 @@ function mount_hdd()
 	fi
 
 	# Find extra hdd
-	local ARR_HDD_SIZE="3.7T 931.5G"
-	local HDD=
-
-	for size in $ARR_HDD_SIZE; do
-		HDD=`sudo fdisk -l | grep $size | awk '{print $1}'`
-		if [ ! -z "$HDD" ]; then
-			break
-		fi
-	done
-
-	if [ -z "$HDD" ]; then
+	local NAME_HDD="hdd1.txt"
+	local UUID=$(get_uuid $NAME_HDD)
+	if [ -z "$UUID" ]; then
+		echo "Cannot access '$NAME_HDD': No such file"
+		echo "You have to create a file '$NAME_HDD' in the '$SCRIPTPATH'"
+		echo "Enter the hdd uuid in the '$NAME_HDD' file."
 		exit 1
 	fi
 
+	local HDD=$(lsblk -lf | grep $UUID | awk '{print $1}')
+	if [ -z "$HDD" ]; then
+		echo "Not found extra HDD"
+		exit 1
+	fi
+
+	HDD="/dev/$HDD"
 	echo "Found extra Hdd [$HDD]"
 
 	# Connect extra hdd
@@ -94,8 +108,6 @@ function status_service()
 	done
 }
 
-SCRIPT=`realpath $0`
-SCRIPTPATH=`dirname $SCRIPT`
 if ! [ -f "${SCRIPTPATH}/service.list" ]; then
 	echo "Cannot access 'service.list': No such file"
 	echo "You have to create a file 'service.list' in the '$SCRIPTPATH'"
