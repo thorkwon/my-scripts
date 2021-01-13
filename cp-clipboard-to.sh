@@ -9,6 +9,7 @@ DST="$1"
 
 MSG=`xclip -o`
 echo "Clipboard = [$MSG]"
+MSG=$(echo "$MSG" | base64)
 
-MSG="echo '${MSG}' >> clipboard"
-ssh -t ${DST} ${MSG}
+MSG="echo '${MSG}' | base64 -d > clipboard"
+ssh -t ${DST} "${MSG}"
