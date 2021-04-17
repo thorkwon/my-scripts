@@ -13,22 +13,7 @@ if [ $# -eq 0 ]; then
 	exit 1
 fi
 
-ROOT_PW=""
-if [[ "$1" == "sudo"* ]]; then
-	echo "[sudo] password:"
-	read -s ROOT_PW
-fi
-
-if [ "$ROOT_PW" = "" ]; then
-	CMD=$@
-else
-	CMD="echo $ROOT_PW | sudo -S"
-
-	for token in $@; do
-		CMD="$CMD"$' '"$token"
-	done
-fi
-
+CMD=$@
 echo "Sent cmd: [$CMD]"
 SERVER_LIST=`cat ${SCRIPTPATH}/server.list`
 for server in $SERVER_LIST; do
