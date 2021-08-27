@@ -24,19 +24,13 @@ fi
 
 # check the afp server
 if [ $FLAG -eq 1 -a $# -eq 0 ]; then
-	exit 1
-elif [ $# -eq 0 ]; then
-	echo "Enter the afp server"
+	exit 0
+elif ! [ $# -eq 2 ]; then
+	echo "Usage: $0 <server-name> <user-name>"
 	exit 1
 fi
 SERVER=$1
-
-# check the user id
-if [ $# -eq 2 ]; then
-	ID=$2
-else
-	ID=`id -un`
-fi
+ID=$2
 
 echo "user: $ID"
 echo -n "password:"
