@@ -3,7 +3,7 @@
 '''
 @package smi2srt
 @brief this module is for convert .smi subtitle file into .srt subtitle
-	(Request by Alfred Chae)
+    (Request by Alfred Chae)
 
 Started : 2011/08/08
 license: GPL
@@ -46,145 +46,145 @@ import chardet #@UnresolvedImport
 
 ###################################################################################################
 def usage(msg=None, exit_code=1):
-	print_msg = """
+    print_msg = """
 usage %s smifile.smi [...]
-	convert smi into srt subtitle file with same filename.
+    convert smi into srt subtitle file with same filename.
 """ % os.path.basename(sys.argv[0])
-	if msg:
-		print_msg += '%s\n' % msg
-	print(print_msg)
-	sys.exit(exit_code)
+    if msg:
+        print_msg += '%s\n' % msg
+    print(print_msg)
+    sys.exit(exit_code)
 
 ###################################################################################################
 class smiItem(object):
-	def __init__(self):
-		self.start_ms = 0
-		self.start_ts = '00:00:00,000'
-		self.end_ms = 0
-		self.end_ts = '00:00:00,000'
-		self.contents = None
-		self.linecount = 0
-	@staticmethod
-	def ms2ts(ms):
-		hours = int(ms / 3600000)
-		ms -= int(hours * 3600000)
-		minutes = int(ms / 60000)
-		ms -= int(minutes * 60000)
-		seconds = int(ms / 1000)
-		ms -= int(seconds * 1000)
-		s = '%02d:%02d:%02d,%03d' % (hours, minutes, seconds, ms)
-		return s
-	def convertSrt(self):
-		if self.linecount == 4:
-			i=1 #@UnusedVariable
-		# 1) convert timestamp
-		self.start_ts = smiItem.ms2ts(self.start_ms)
-		self.end_ts = smiItem.ms2ts(self.end_ms-10)
-		# 2) remove new-line
-		self.contents = re.sub(r'\s+', ' ', self.contents)
-		# 3) remove web string like "&nbsp";
-		self.contents = re.sub(r'&[a-z]{2,5};', '', self.contents)
-		# 4) replace "<br>" with '\n';
-		self.contents = re.sub(r'(<br>)+', '\n', self.contents, flags=re.IGNORECASE)
-		# 5) find all tags
-		fndx = self.contents.find('<')
-		if fndx >= 0:
-			contents = self.contents
-			sb = self.contents[0:fndx]
-			contents = contents[fndx:]
-			while True:
-				m = re.match(r'</?([a-z]+)[^>]*>([^<>]*)', contents, flags=re.IGNORECASE)
-				if m == None: break
-				contents = contents[m.end(2):]
-				#if m.group(1).lower() in ['font', 'b', 'i', 'u']:
-				if m.group(1).lower() in ['b', 'i', 'u']:
-					sb += m.string[0:m.start(2)]
-				sb += m.group(2)
-			self.contents = sb
-		self.contents = self.contents.strip()
-		self.contents = self.contents.strip('\n')
-	def __repr__(self):
-		s = '%d:%d:<%s>:%d' % (self.start_ms, self.end_ms, self.contents, self.linecount)
-		return s
+    def __init__(self):
+        self.start_ms = 0
+        self.start_ts = '00:00:00,000'
+        self.end_ms = 0
+        self.end_ts = '00:00:00,000'
+        self.contents = None
+        self.linecount = 0
+    @staticmethod
+    def ms2ts(ms):
+        hours = int(ms / 3600000)
+        ms -= int(hours * 3600000)
+        minutes = int(ms / 60000)
+        ms -= int(minutes * 60000)
+        seconds = int(ms / 1000)
+        ms -= int(seconds * 1000)
+        s = '%02d:%02d:%02d,%03d' % (hours, minutes, seconds, ms)
+        return s
+    def convertSrt(self):
+        if self.linecount == 4:
+            i=1 #@UnusedVariable
+        # 1) convert timestamp
+        self.start_ts = smiItem.ms2ts(self.start_ms)
+        self.end_ts = smiItem.ms2ts(self.end_ms-10)
+        # 2) remove new-line
+        self.contents = re.sub(r'\s+', ' ', self.contents)
+        # 3) remove web string like "&nbsp";
+        self.contents = re.sub(r'&[a-z]{2,5};', '', self.contents)
+        # 4) replace "<br>" with '\n';
+        self.contents = re.sub(r'(<br>)+', '\n', self.contents, flags=re.IGNORECASE)
+        # 5) find all tags
+        fndx = self.contents.find('<')
+        if fndx >= 0:
+            contents = self.contents
+            sb = self.contents[0:fndx]
+            contents = contents[fndx:]
+            while True:
+                m = re.match(r'</?([a-z]+)[^>]*>([^<>]*)', contents, flags=re.IGNORECASE)
+                if m == None: break
+                contents = contents[m.end(2):]
+                #if m.group(1).lower() in ['font', 'b', 'i', 'u']:
+                if m.group(1).lower() in ['b', 'i', 'u']:
+                    sb += m.string[0:m.start(2)]
+                sb += m.group(2)
+            self.contents = sb
+        self.contents = self.contents.strip()
+        self.contents = self.contents.strip('\n')
+    def __repr__(self):
+        s = '%d:%d:<%s>:%d' % (self.start_ms, self.end_ms, self.contents, self.linecount)
+        return s
 
 ###################################################################################################
 def convertSMI(smi_file):
-	if not os.path.exists(smi_file):
-		sys.stderr.write('Cannot find smi file <%s>\n' % smi_file)
-		return False
-	rndx = smi_file.rfind('.')
-	srt_file = '%s.srt' % smi_file[0:rndx]
+    if not os.path.exists(smi_file):
+        sys.stderr.write('Cannot find smi file <%s>\n' % smi_file)
+        return False
+    rndx = smi_file.rfind('.')
+    srt_file = '%s.srt' % smi_file[0:rndx]
 
-	codecs = ['UTF-8', 'EUC-KR', 'CP949', 'UTF-16']
-	for i in codecs:
-		with open(smi_file, 'rb') as ifp:
-			try:
-				smi_sgml = ifp.read().decode(i)
-			except UnicodeDecodeError as e:
-				continue
-		break
+    codecs = ['UTF-8', 'EUC-KR', 'CP949', 'UTF-16']
+    for i in codecs:
+        with open(smi_file, 'rb') as ifp:
+            try:
+                smi_sgml = ifp.read().decode(i)
+            except UnicodeDecodeError as e:
+                continue
+        break
 
-	# skip to first starting tag (skip first 0xff 0xfe ...)
-	try:
-		fndx = smi_sgml.upper().find('<SYNC')
-	except Exception as e:
-		raise e
-	if fndx < 0:
-		return False
-	smi_sgml = smi_sgml[fndx:]
-	lines = smi_sgml.split('\n')
+    # skip to first starting tag (skip first 0xff 0xfe ...)
+    try:
+        fndx = smi_sgml.upper().find('<SYNC')
+    except Exception as e:
+        raise e
+    if fndx < 0:
+        return False
+    smi_sgml = smi_sgml[fndx:]
+    lines = smi_sgml.split('\n')
 
-	srt_list = []
-	sync_cont = ''
-	si = None
-	last_si = None
-	linecnt = 0
-	for line in lines:
-		linecnt += 1
-		sndx = line.upper().find('<SYNC')
-		if sndx >= 0:
-			m = re.search(r'<sync\s+start\s*=\s*(\d+)>(.*)$', line, flags=re.IGNORECASE)
-			if not m:
-				print(">>>>>>>>>> Error smi file: [{}]".format(smi_file))
-				print("Invalid format tag of <Sync start=nnnn> with {}".format(line))
-				return False
-			sync_cont += line[0:sndx]
-			last_si = si
-			if last_si != None:
-				last_si.end_ms = int(m.group(1))
-				last_si.contents = sync_cont
-				srt_list.append(last_si)
-				last_si.linecount = linecnt
-				#print '[%06d] %s' % (linecnt, last_si)
-			sync_cont = m.group(2)
-			si = smiItem()
-			si.start_ms = int(m.group(1))
-		else:
-			sync_cont += line
+    srt_list = []
+    sync_cont = ''
+    si = None
+    last_si = None
+    linecnt = 0
+    for line in lines:
+        linecnt += 1
+        sndx = line.upper().find('<SYNC')
+        if sndx >= 0:
+            m = re.search(r'<sync\s+start\s*=\s*(\d+)>(.*)$', line, flags=re.IGNORECASE)
+            if not m:
+                print(">>>>>>>>>> Error smi file: [{}]".format(smi_file))
+                print("Invalid format tag of <Sync start=nnnn> with {}".format(line))
+                return False
+            sync_cont += line[0:sndx]
+            last_si = si
+            if last_si != None:
+                last_si.end_ms = int(m.group(1))
+                last_si.contents = sync_cont
+                srt_list.append(last_si)
+                last_si.linecount = linecnt
+                #print '[%06d] %s' % (linecnt, last_si)
+            sync_cont = m.group(2)
+            si = smiItem()
+            si.start_ms = int(m.group(1))
+        else:
+            sync_cont += line
 
-	with open(srt_file, 'w') as ofp:
-		ndx = 1
-		for si in srt_list:
-			si.convertSrt()
-			if si.contents == None or len(si.contents) <= 0:
-				continue
-			#print si
-			sistr = '%d\n%s --> %s\n%s\n\n' % (ndx, si.start_ts, si.end_ts, si.contents)
-			#sistr = unicode(sistr, 'utf-8').encode('euc-kr')
-			ofp.write(sistr)
-			ndx += 1
-	return True
+    with open(srt_file, 'w') as ofp:
+        ndx = 1
+        for si in srt_list:
+            si.convertSrt()
+            if si.contents == None or len(si.contents) <= 0:
+                continue
+            #print si
+            sistr = '%d\n%s --> %s\n%s\n\n' % (ndx, si.start_ts, si.end_ts, si.contents)
+            #sistr = unicode(sistr, 'utf-8').encode('euc-kr')
+            ofp.write(sistr)
+            ndx += 1
+    return True
 
 ###################################################################################################
 def doConvert():
-	if len(sys.argv) <= 1:
-		usage()
-	for smi_file in sys.argv[1:]:
-		if convertSMI(smi_file):
-			print("Converting <%s> OK!" % smi_file)
-		else:
-			print("Converting <%s> Failture!" % smi_file)
+    if len(sys.argv) <= 1:
+        usage()
+    for smi_file in sys.argv[1:]:
+        if convertSMI(smi_file):
+            print("Converting <%s> OK!" % smi_file)
+        else:
+            print("Converting <%s> Failture!" % smi_file)
 
 ###################################################################################################
 if __name__ == '__main__':
-	doConvert()
+    doConvert()
