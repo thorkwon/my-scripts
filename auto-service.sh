@@ -33,37 +33,59 @@ function mount_hdd()
 		exit 1
 	fi
 
-	# Find extra hdd
-	local NAME_HDD="hdd1.txt"
-	local UUID=$(get_uuid $NAME_HDD)
-	if [ -z "$UUID" ]; then
-		echo "Cannot access '$NAME_HDD': No such file"
-		echo "You have to create a file '$NAME_HDD' in the '$SCRIPTPATH'"
-		echo "Enter the hdd uuid in the '$NAME_HDD' file."
+	# Find extra hdd1
+	local NAME_HDD1="hdd1.txt"
+	local UUID1=$(get_uuid $NAME_HDD1)
+	if [ -z "$UUID1" ]; then
+		echo "Cannot access '$NAME_HDD1': No such file"
+		echo "You have to create a file '$NAME_HDD1' in the '$SCRIPTPATH'"
+		echo "Enter the hdd uuid in the '$NAME_HDD1' file."
 		exit 1
 	fi
 
-	local HDD=$(lsblk -lf | grep $UUID | awk '{print $1}')
-	if [ -z "$HDD" ]; then
+	local HDD1=$(lsblk -lf | grep $UUID1 | awk '{print $1}')
+	if [ -z "$HDD1" ]; then
 		echo "Not found extra HDD"
 		exit 1
 	fi
 
-	HDD="/dev/$HDD"
-	echo "Found extra Hdd [$HDD]"
+	HDD1="/dev/$HDD1"
+	echo "Found extra Hdd [$HDD1]"
 
-	# Connect extra hdd
-	sudo mount $HDD /home/Share
-	mount | grep "$HDD"
-	sync
+	# Find extra hdd2
+	local NAME_HDD2="hdd2.txt"
+	local UUID2=$(get_uuid $NAME_HDD2)
+	local HDD2=""
+	if [ -n "$UUID2" ]; then
+		HDD2=$(lsblk -lf | grep $UUID2 | awk '{print $1}')
+		if [ -n "$HDD2" ]; then
+			HDD2="/dev/$HDD2"
+			echo "Found extra Hdd [$HDD2]"
+		fi
+	fi
+
+	# Mount extra hdd
+	sudo mount $HDD1 /home/Share
+	mount | grep "$HDD1"
+	if [ -n "$HDD2" ]; then
+		sudo mount $HDD2 /home/Backup
+		mount | grep "$HDD2"
+	fi
+
 	sleep 1
 }
 
 function umount_hdd()
 {
-	# umount hdd
-	sudo fuser -ku /home/Share
-	sudo umount /home/Share && echo "Umount hdd"
+	local HDDS=("/home/Backup" "/home/Share")
+
+	for hdd in ${HDDS[@]}; do
+		local MO=$(mount | grep $hdd)
+		if [ -n "$MO" ]; then
+			sudo fuser -ku $hdd
+			sudo umount $hdd && echo "Umount $hdd"
+		fi
+	done
 }
 
 function start_service()
