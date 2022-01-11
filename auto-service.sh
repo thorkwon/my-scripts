@@ -82,7 +82,7 @@ function umount_hdd()
 	for hdd in ${HDDS[@]}; do
 		local MO=$(mount | grep $hdd)
 		if [ -n "$MO" ]; then
-			sudo fuser -ku $hdd
+			sudo fuser -kum $hdd
 			sudo umount $hdd && echo "Umount $hdd"
 		fi
 	done
