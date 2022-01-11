@@ -6,7 +6,7 @@ flag=0
 CMD=`sudo mount | grep server`
 if [ -n "$CMD" ] ; then
 	echo "Un mount server"
-	sudo fuser -ku /mnt/server/
+	sudo fuser -kum /mnt/server/
 	sudo umount /mnt/server
 	flag=1
 fi
