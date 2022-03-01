@@ -65,9 +65,11 @@ if [ "$1" = "base" -o "$1" = "all" ]; then
 	fcitx-hangul
 	aria2
 	ffmpeg
-	speedtest-cli
 	zsh
 	htop
+	ethtool
+	pv
+	smartmontools
 
 	cmake
 	autoconf
