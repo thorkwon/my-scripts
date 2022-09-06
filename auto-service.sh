@@ -3,6 +3,13 @@
 SCRIPT=`realpath $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
+COLOR_RED=`tput setaf 1`
+COLOR_GREEN=`tput setaf 2`
+COLOR_YELLOW=`tput setaf 3`
+COLOR_BLUE=`tput setaf 4`
+COLOR_WITHE=`tput setaf 7`
+COLOR_RESET=`tput sgr0`
+
 function help()
 {
 	echo "Usage: $0 command"
@@ -125,8 +132,8 @@ function status_service()
 		local CMD=`systemctl is-enabled ${ser} 2>&1 | grep Failed`
 		if [ -z "$CMD" ]; then
 			systemctl status ${ser} | grep -B8 Active: | \
-				sed -e "s/ active ([a-z]*)/$(echo -e "\e[1;32m&\e[0m")/g" \
-					-e "s/ inactive ([a-z]*)/$(echo -e "\e[1;31m&\e[0m")/g"
+				sed -e "s/ active ([a-z]*)/$(echo "${COLOR_GREEN}&${COLOR_RESET}")/g" \
+					-e "s/ inactive ([a-z]*)/$(echo "${COLOR_RED}&${COLOR_RESET}")/g"
 			echo ""
 		fi
 	done
