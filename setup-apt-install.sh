@@ -25,10 +25,6 @@ fi
 
 # base
 if [ "$1" = "base" -o "$1" = "all" ]; then
-	echo "Add apt repo"
-	sudo add-apt-repository ppa:dawidd0811/neofetch
-	sudo find /etc/apt/ -name "*.save" -exec rm {} \;
-
 	if [ $FLAG_USED_GNOME -eq 0 ]; then
 		sudo apt update
 	fi
