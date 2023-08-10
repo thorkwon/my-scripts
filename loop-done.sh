@@ -7,10 +7,12 @@ CMD=$@
 echo "CMD : [$CMD]"
 
 while true; do
-	$CMD
+	$CMD > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${COLOR_GREEN}Done${COLOR_RESET}"
 		break
 	fi
 	sleep 0.5
+	echo "- waiting for response -"
+
 done
