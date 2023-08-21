@@ -28,6 +28,11 @@ def fix_time(lines, delay):
     i = -1
     for l in lines:
         i += 1
+
+        if l == "\n":
+            flag = 0
+            continue
+
         if flag == 0:
             flag = 1
             continue
@@ -43,11 +48,7 @@ def fix_time(lines, delay):
 
             result_line = "%s --> %s\n" % (start_time.strftime("%H:%M:%S,%f")[:-3], end_time.strftime("%H:%M:%S,%f")[:-3])
             lines[i] = result_line
-
             flag = 2
-        elif flag == 2:
-            if l == "\n":
-                flag = 0
 
 def main():
     if len(sys.argv) != 3:
