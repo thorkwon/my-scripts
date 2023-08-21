@@ -53,6 +53,10 @@ def fix_time(lines, delay):
 def main():
     if len(sys.argv) != 3:
         print("Usage: %s <srt_file> <delay>" % os.path.basename(sys.argv[0]))
+        print("\nEnter the delay in seconds.")
+        print("e.g.")
+        print("  +1 or 1")
+        print("  -1 or -1.5")
         return
 
     prefix_path = os.path.abspath(sys.argv[0])
