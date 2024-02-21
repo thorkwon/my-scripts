@@ -9,10 +9,10 @@ echo "CMD : [$CMD]"
 while true; do
 	$CMD > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
-		echo "${COLOR_GREEN}Done${COLOR_RESET}"
+		echo -en "\n${COLOR_GREEN}Done${COLOR_RESET}\n"
 		break
 	fi
 	sleep 0.5
-	echo "- waiting for response -"
+	echo -en "."
 
 done
