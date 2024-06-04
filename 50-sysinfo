@@ -87,6 +87,19 @@ function get_mem_info() {
 	echo -e " * Available memory\t${AVAILABLE_MEM}G of ${TOTAL_MEM}G"
 }
 
+function get_temperature() {
+	case $OS in
+		Linux)
+			echo -e " * Temperature "
+			local THERMAL_LIST=($(ls -1 /sys/class/thermal/ | grep thermal_zone))
+			for L in ${THERMAL_LIST[@]}; do
+				echo -en "   [$(cat /sys/class/thermal/${L}/type)]\t\t"
+				cat /sys/class/thermal/${L}/temp 2>/dev/null | awk '{printf "%.1f C\n", $1/1000}'
+			done
+	esac
+}
+
 echo -e ""
 get_uptime
 get_mem_info
+get_temperature
