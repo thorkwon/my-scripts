@@ -91,12 +91,14 @@ def main():
         print("Create en text file: %s\n" % en_name)
         print("You have to translate to Korea text " +
                 "file and then save to file '%s'" % ko_name)
+        sys.exit(1)
     else:
         result_list = merge_prefix_and_text(lines, ko_list)
         os.rename(srt_name, srt_name + ".backup")
         print("Backup origin file %s.backup" % srt_name)
         create_file(srt_name, result_list)
         print("Create ko subtitle srt file: %s" % srt_name)
+        sys.exit(0)
 
 if __name__ == "__main__":
     main()
