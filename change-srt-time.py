@@ -1,75 +1,70 @@
 #!/usr/bin/env python3
-
-import os
 import sys
 import datetime
+from pathlib import Path
 
-def get_file(file_name):
+
+def get_file(file_name: Path) -> list[str]:
     try:
-        f = open(file_name,'r', encoding='UTF8')
-        lines = f.readlines()
-        f.close()
-    except:
-        lines = []
+        return file_name.read_text(encoding="utf-8").splitlines(keepends=True)
+    except FileNotFoundError:
+        return []
 
-    return lines
 
-def create_file(file_name, content):
-    file = open(file_name, 'w', encoding='UTF-8')
+def create_file(file_name: Path, content: list[str]) -> None:
+    file_name.write_text("".join(content), encoding="utf-8")
 
-    for line in content:
-        file.write('%s' % line)
-    file.close()
 
-def fix_time(lines, delay):
-    delay *= 1000
+def fix_time(lines: list[str], delay: float) -> None:
+    delay_ms = int(delay * 1000)
+    flag = 0  # idx:0 time:1 text:2
 
-    flag = 0 # idx:0 time:1 text:2
-    i = -1
-    for l in lines:
-        i += 1
-
-        if l == "\n":
+    for i, line in enumerate(lines):
+        if line == "\n":
             flag = 0
             continue
 
         if flag == 0:
             flag = 1
-            continue
         elif flag == 1:
-            start_time_str = l.split("-->")[0].strip()
-            end_time_str = l.split("-->")[1].strip()
+            start_str, end_str = (part.strip() for part in line.split("-->"))
+            start_time = datetime.datetime.strptime(start_str, "%H:%M:%S,%f")
+            end_time = datetime.datetime.strptime(end_str, "%H:%M:%S,%f")
 
-            start_time = datetime.datetime.strptime(start_time_str, "%H:%M:%S,%f")
-            end_time = datetime.datetime.strptime(end_time_str, "%H:%M:%S,%f")
+            start_time += datetime.timedelta(milliseconds=delay_ms)
+            end_time += datetime.timedelta(milliseconds=delay_ms)
 
-            start_time += datetime.timedelta(milliseconds=delay)
-            end_time += datetime.timedelta(milliseconds=delay)
-
-            result_line = "%s --> %s\n" % (start_time.strftime("%H:%M:%S,%f")[:-3], end_time.strftime("%H:%M:%S,%f")[:-3])
-            lines[i] = result_line
+            lines[i] = f"{start_time.strftime('%H:%M:%S,%f')[:-3]} --> {end_time.strftime('%H:%M:%S,%f')[:-3]}\n"
             flag = 2
 
-def main():
+
+def main() -> None:
     if len(sys.argv) != 3:
-        print("Usage: %s <srt_file> <delay>" % os.path.basename(sys.argv[0]))
-        print("\nEnter the delay in seconds.")
-        print("e.g.")
+        script_name = Path(sys.argv[0]).name
+        print(f"Usage: {script_name} <srt_file> <delay>\n")
+        print("Enter the delay in seconds. Examples:")
         print("  +1 or 1")
         print("  -1 or -1.5")
         return
 
-    prefix_path = os.path.abspath(sys.argv[0])
-    prefix_path = os.path.dirname(prefix_path)
+    srt_file = Path(sys.argv[1])
+    try:
+        delay = float(sys.argv[2])
+    except ValueError:
+        print("Error: delay must be a number.")
+        return
 
-    srt_name = sys.argv[1]
-    delay = float(sys.argv[2])
-    print("Subtile delay: %f" % delay)
+    print(f"Subtitle delay: {delay:.3f} seconds")
 
-    lines = get_file(srt_name)
+    lines = get_file(srt_file)
+    if not lines:
+        print(f"Error: file '{srt_file}' not found or empty.")
+        return
+
     fix_time(lines, delay)
-    create_file(srt_name, lines)
-    print("Fix srt subtitle times!")
+    create_file(srt_file, lines)
+    print("Subtitle times updated!")
+
 
 if __name__ == "__main__":
     main()
