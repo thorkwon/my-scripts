@@ -103,3 +103,4 @@ echo -e ""
 get_uptime
 get_mem_info
 get_temperature
+echo -e ""
