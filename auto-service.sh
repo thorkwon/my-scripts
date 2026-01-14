@@ -145,7 +145,7 @@ if ! [ -f "${SCRIPTPATH}/service.list" ]; then
 	exit 1
 fi
 
-LIST_SERVICE="`cat ${SCRIPTPATH}/service.list`"
+LIST_SERVICE="`cat ${SCRIPTPATH}/service.list|grep -v ^#`"
 
 if [ $# -eq 0 ]; then
 	help
