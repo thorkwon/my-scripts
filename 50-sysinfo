@@ -67,19 +67,20 @@ function get_mem_info() {
 			TOTAL_MEM=$(echo $TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024}')
 			;;
 		Darwin)
-			local FREE_BLOCKS=$(vm_stat | grep free | awk '{ print $3 }' | sed 's/\.//')
-			local INACTIVE_BLOCKS=$(vm_stat | grep inactive | awk '{ print $3 }' | sed 's/\.//')
-			local SPECULATIVE_BLOCKS=$(vm_stat | grep speculative | awk '{ print $3 }' | sed 's/\.//')
+			local MEM_PRESSURE=$(memory_pressure)
 
-			local FREE_MEM=$((($FREE_BLOCKS+SPECULATIVE_BLOCKS)*4096))
-			local INACTIVE_MEM=$(($INACTIVE_BLOCKS*4096))
+			local TOTAL_MEM_BYTES=$(echo "$MEM_PRESSURE" | head -1 | grep -oE "[0-9]+" | head -1)
+			TOTAL_MEM=$(echo "scale=2; $TOTAL_MEM_BYTES / 1024 / 1024 / 1024" | bc)
 
-			local FREE_TOTAL_MEM=$(($FREE_MEM+$INACTIVE_MEM))
-			local TOTAL_MEM=$(sysctl -n hw.memsize)
+			local FREE_MEM_PER=$(echo "$MEM_PRESSURE" | grep "System-wide memory free percentage:" | grep -oE "[0-9]+")
+			USED_MEM_PER=$((100 - FREE_MEM_PER))
 
-			local USED_MEM_PER=$(expr 100 '-' '(' ${FREE_TOTAL_MEM} '*' 100 '/' ${TOTAL_MEM} ')')
-			local AVAILABLE_MEM=$(echo $FREE_TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024/1024}')
-			TOTAL_MEM=$(echo $TOTAL_MEM | awk '{printf "%.1f", $1/1024/1024/1024}')
+			local PAGES_FREE=$(echo "$MEM_PRESSURE" | grep "^Pages free:" | grep -oE "[0-9]+")
+			local PAGES_PURGEABLE=$(echo "$MEM_PRESSURE" | grep "^Pages purgeable:" | grep -oE "[0-9]+")
+			local PAGE_SIZE=$(echo "$MEM_PRESSURE" | grep "page size of" | grep -oE "[0-9]+" | tail -1)
+
+			local AVAILABLE_MEM_BYTES=$(( (PAGES_FREE + PAGES_PURGEABLE) * PAGE_SIZE ))
+			AVAILABLE_MEM=$(echo "scale=2; $AVAILABLE_MEM_BYTES / 1024 / 1024 / 1024" | bc)
 			;;
 	esac
 
