@@ -4,12 +4,7 @@
 function branch_color()
 {
     if git rev-parse --git-dir >/dev/null 2>&1; then
-        if git diff --quiet 2>/dev/null >&2; then
-            BRANCH_COLOR="%{$fg[green]%}("
-        else
-            BRANCH_COLOR="%{$fg[red]%}("
-        fi
-        echo -ne $BRANCH_COLOR
+        echo -ne "%{$reset_color%}%{$fg[yellow]%}("
     fi
 }
 
@@ -23,6 +18,7 @@ function git-mode-toggle()
         GIT_MODE=1
         echo "Enable git mode"
         PROMPT='%{$reset_color%}%n@%m:%{$fg_bold[blue]%}%~ $(branch_color)$(git_prompt_info)%{$reset_color%}%(!.#.$) '
+        (( ${+functions[_omz_register_handler]} )) && _omz_register_handler _omz_git_prompt_info
     fi
 }
 
