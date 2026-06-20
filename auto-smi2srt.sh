@@ -15,7 +15,7 @@ find "$FindRoot" -name '[^.]*.smi' | while read line; do
 		continue
 	fi
 
-	python3 ${SCRIPTPATH}/smi2srt.py "$line"
+	uv run ${SCRIPTPATH}/smi2srt.py "$line"
 
 	USER=`ls -l "$line" | awk '{print $3}'`
 	GROUP=`ls -l "$line" | awk '{print $4}'`

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
+# /// script
+# dependencies = [
+#   "chardet",
+# ]
+# ///
 '''
 @package smi2srt
 @brief this module is for convert .smi subtitle file into .srt subtitle
