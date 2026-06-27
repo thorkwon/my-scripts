@@ -351,7 +351,7 @@ def check_file(filepath: str) -> tuple[set[str], set[str], bool]:
     output = result.stderr + result.stdout
 
     # E[...] [error_id] 패턴 → Diagnostics.Suppress 대상
-    diag_ids = set(re.findall(r"E\[.*?\] \[([a-zA-Z0-9_]+)\]", output))
+    diag_ids = set(re.findall(r"E\[.*?\] \[([a-zA-Z0-9_-]+)\]", output))
 
     # unknown argument / unused argument 패턴 → CompileFlags.Remove 대상
     unknown_flags = set(
