@@ -286,13 +286,14 @@ def ensure_clangd_exists() -> None:
 
     data = {
         "CompileFlags": {
+            "Add": ["-ferror-limit=0"],
             "Remove": sorted(GCC_ONLY_FLAGS)
         }
     }
 
     target = detect_target_from_cdb()
     if target:
-        data["CompileFlags"]["Add"] = [f"--target={target}"]
+        data["CompileFlags"]["Add"].append(f"--target={target}")
         print(f"타겟 감지: {target} → CompileFlags.Add에 --target 추가")
 
     with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
@@ -324,6 +325,19 @@ def ensure_target_in_add_flags(dry_run: bool = False) -> None:
     print(f"CompileFlags.Add에 {target_flag} 누락 → {'(dry-run) ' if dry_run else ''}추가")
     if not dry_run:
         add_compile_add_flags({target_flag})
+
+
+def ensure_error_limit_in_add_flags(dry_run: bool = False) -> None:
+    """기존 .clangd에 -ferror-limit=0이 빠져 있으면 보완한다."""
+    error_limit_flag = "-ferror-limit=0"
+    existing_add = get_existing_add_flags()
+
+    if error_limit_flag in existing_add:
+        return
+
+    print(f"CompileFlags.Add에 {error_limit_flag} 누락 → {'(dry-run) ' if dry_run else ''}추가")
+    if not dry_run:
+        add_compile_add_flags({error_limit_flag})
 
 
 # ── clangd --check 실행 ──────────────────────────────────────────────────────
@@ -380,6 +394,7 @@ def main():
     ensure_clangd_exists()
     # 파일 신규/기존 여부 관계없이 --target 누락 여부를 항상 확인
     ensure_target_in_add_flags(dry_run=args.dry_run)
+    ensure_error_limit_in_add_flags(dry_run=args.dry_run)
 
     files_to_check = list(args.files)
 
