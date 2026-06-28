@@ -41,6 +41,11 @@ REPO_ROOT = find_repo_root()
 CLANGD_CONFIG = REPO_ROOT / ".clangd"
 CLANGD_BIN = "clangd"
 
+
+def is_linux_kernel_repo() -> bool:
+    """현재 저장소가 리눅스 커널 저장소인지 확인 (Kbuild 및 Kconfig 존재 여부)"""
+    return (REPO_ROOT / "Kbuild").exists() and (REPO_ROOT / "Kconfig").exists()
+
 # GCC 전용 플래그 목록 (clangd가 인식하지 못하는 플래그)
 GCC_ONLY_FLAGS = [
     # GCC 전용 최적화/코드생성 플래그
@@ -132,35 +137,45 @@ def detect_target_from_cdb() -> str | None:
     return None
 
 
+# ── YAML 다중 문서 로드/저장 헬퍼 ───────────────────────────────
+
+def load_clangd_docs() -> list[dict]:
+    """현재 .clangd의 다중 YAML 문서 목록 로드"""
+    if not CLANGD_CONFIG.exists():
+        return [{}]
+    yaml = YAML()
+    try:
+        with open(CLANGD_CONFIG, "r", encoding="utf-8") as f:
+            docs = list(yaml.load_all(f))
+        return docs if docs else [{}]
+    except Exception:
+        return [{}]
+
+
+def save_clangd_docs(docs: list[dict]) -> None:
+    """다중 YAML 문서 목록을 .clangd에 저장"""
+    yaml = YAML()
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
+        yaml.dump_all(docs, f)
+
+
 # ── CompileFlags.Add ─────────────────────────────────────────────────────────
 
 def get_existing_add_flags() -> set[str]:
-    """현재 .clangd의 CompileFlags.Add 목록 추출"""
-    if not CLANGD_CONFIG.exists():
-        return set()
-    yaml = YAML()
-    try:
-        data = yaml.load(CLANGD_CONFIG) or {}
-        add_list = data.get("CompileFlags", {}).get("Add", [])
-        if isinstance(add_list, str):
-            return {add_list}
-        return set(add_list) if add_list else set()
-    except Exception:
-        return set()
+    """현재 .clangd의 CompileFlags.Add 목록 추출 (글로벌 설정 기준)"""
+    docs = load_clangd_docs()
+    data = docs[0]
+    add_list = data.get("CompileFlags", {}).get("Add", [])
+    if isinstance(add_list, str):
+        return {add_list}
+    return set(add_list) if add_list else set()
 
 
 def add_compile_add_flags(new_flags: set[str]) -> None:
-    """새 플래그를 .clangd CompileFlags.Add 섹션에 추가"""
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
-
-    if CLANGD_CONFIG.exists():
-        try:
-            data = yaml.load(CLANGD_CONFIG) or {}
-        except Exception:
-            data = {}
-    else:
-        data = {}
+    """새 플래그를 .clangd CompileFlags.Add 섹션에 추가 (글로벌 설정 기준)"""
+    docs = load_clangd_docs()
+    data = docs[0]
 
     if "CompileFlags" not in data or data["CompileFlags"] is None:
         data["CompileFlags"] = {}
@@ -173,40 +188,25 @@ def add_compile_add_flags(new_flags: set[str]) -> None:
 
     updated = sorted(list(set(existing_add) | new_flags))
     data["CompileFlags"]["Add"] = updated
-
-    with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(data, f)
+    save_clangd_docs(docs)
 
 
 # ── CompileFlags.Remove ──────────────────────────────────────────────────────
 
 def get_existing_remove_flags() -> set[str]:
     """현재 .clangd의 CompileFlags.Remove 목록 추출"""
-    if not CLANGD_CONFIG.exists():
-        return set()
-    yaml = YAML()
-    try:
-        data = yaml.load(CLANGD_CONFIG) or {}
-        remove_list = data.get("CompileFlags", {}).get("Remove", [])
-        if isinstance(remove_list, str):
-            return {remove_list}
-        return set(remove_list) if remove_list else set()
-    except Exception:
-        return set()
+    docs = load_clangd_docs()
+    data = docs[0]
+    remove_list = data.get("CompileFlags", {}).get("Remove", [])
+    if isinstance(remove_list, str):
+        return {remove_list}
+    return set(remove_list) if remove_list else set()
 
 
 def add_remove_flags(new_flags: set[str]) -> None:
     """새 플래그를 .clangd CompileFlags.Remove 섹션에 추가"""
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
-
-    if CLANGD_CONFIG.exists():
-        try:
-            data = yaml.load(CLANGD_CONFIG) or {}
-        except Exception:
-            data = {}
-    else:
-        data = {}
+    docs = load_clangd_docs()
+    data = docs[0]
 
     if "CompileFlags" not in data or data["CompileFlags"] is None:
         data["CompileFlags"] = {}
@@ -219,40 +219,25 @@ def add_remove_flags(new_flags: set[str]) -> None:
 
     updated = sorted(list(set(existing_remove) | new_flags))
     data["CompileFlags"]["Remove"] = updated
-
-    with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(data, f)
+    save_clangd_docs(docs)
 
 
 # ── Diagnostics.Suppress ────────────────────────────────────────────────────
 
 def get_existing_suppressions() -> set[str]:
     """현재 .clangd에서 Suppress 목록 추출"""
-    if not CLANGD_CONFIG.exists():
-        return set()
-    yaml = YAML()
-    try:
-        data = yaml.load(CLANGD_CONFIG) or {}
-        suppress_list = data.get("Diagnostics", {}).get("Suppress", [])
-        if isinstance(suppress_list, str):
-            return {suppress_list}
-        return set(suppress_list) if suppress_list else set()
-    except Exception:
-        return set()
+    docs = load_clangd_docs()
+    data = docs[0]
+    suppress_list = data.get("Diagnostics", {}).get("Suppress", [])
+    if isinstance(suppress_list, str):
+        return {suppress_list}
+    return set(suppress_list) if suppress_list else set()
 
 
 def add_suppressions(new_ids: set[str]) -> None:
     """새 ID를 .clangd Suppress 섹션에 추가"""
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
-
-    if CLANGD_CONFIG.exists():
-        try:
-            data = yaml.load(CLANGD_CONFIG) or {}
-        except Exception:
-            data = {}
-    else:
-        data = {}
+    docs = load_clangd_docs()
+    data = docs[0]
 
     if "Diagnostics" not in data or data["Diagnostics"] is None:
         data["Diagnostics"] = {}
@@ -265,48 +250,77 @@ def add_suppressions(new_ids: set[str]) -> None:
 
     updated = sorted(list(set(existing_suppress) | new_ids))
     data["Diagnostics"]["Suppress"] = updated
+    save_clangd_docs(docs)
 
-    with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(data, f)
+
+# ── Tweak.Remove ────────────────────────────────────────────────────────────
+
+def get_existing_remove_tweaks() -> set[str]:
+    """현재 .clangd의 Tweak.Remove 목록 추출"""
+    docs = load_clangd_docs()
+    data = docs[0]
+    remove_list = data.get("Tweak", {}).get("Remove", [])
+    if isinstance(remove_list, str):
+        return {remove_list}
+    return set(remove_list) if remove_list else set()
+
+
+def add_remove_tweaks(new_tweaks: set[str]) -> None:
+    """새 Tweak을 .clangd Tweak.Remove 섹션에 추가"""
+    docs = load_clangd_docs()
+    data = docs[0]
+
+    if "Tweak" not in data or data["Tweak"] is None:
+        data["Tweak"] = {}
+
+    existing_remove = data["Tweak"].get("Remove", [])
+    if isinstance(existing_remove, str):
+        existing_remove = [existing_remove]
+    elif existing_remove is None:
+        existing_remove = []
+
+    updated = sorted(list(set(existing_remove) | new_tweaks))
+    data["Tweak"]["Remove"] = updated
+    save_clangd_docs(docs)
 
 
 # ── .clangd 초기 생성 및 타겟 보장 ─────────────────────────────────────────
 
 def ensure_clangd_exists() -> None:
-    """clangd 설정 파일이 없으면 기본 내용으로 생성.
-
-    compile_commands.json을 분석해 --target 오버라이드가 필요하면
-    CompileFlags.Add 섹션도 함께 생성한다.
-    """
+    """clangd 설정 파일이 없으면 기본 내용으로 생성."""
     if CLANGD_CONFIG.exists():
         return
 
-    yaml = YAML()
-    yaml.indent(mapping=2, sequence=4, offset=2)
-
-    data = {
-        "CompileFlags": {
-            "Add": ["-ferror-limit=0"],
-            "Remove": sorted(GCC_ONLY_FLAGS)
+    docs = [
+        {
+            "CompileFlags": {
+                "Add": ["-ferror-limit=0"],
+                "Remove": sorted(GCC_ONLY_FLAGS)
+            }
         }
-    }
+    ]
+
+    if is_linux_kernel_repo():
+        docs.append({
+            "If": {
+                "PathMatch": [r".*\.h", r".*\.hpp"]
+            },
+            "CompileFlags": {
+                "Add": ["-include=linux/mm.h", "-include=asm/pgtable.h"]
+            }
+        })
 
     target = detect_target_from_cdb()
     if target:
-        data["CompileFlags"]["Add"].append(f"--target={target}")
+        docs[0]["CompileFlags"]["Add"].append(f"--target={target}")
         print(f"타겟 감지: {target} → CompileFlags.Add에 --target 추가")
 
-    with open(CLANGD_CONFIG, "w", encoding="utf-8") as f:
-        yaml.dump(data, f)
-
+    save_clangd_docs(docs)
     print(f".clangd 파일 생성 완료 → {CLANGD_CONFIG}")
 
 
 def ensure_target_in_add_flags(dry_run: bool = False) -> None:
-    """기존 .clangd에 --target이 빠져 있으면 보완한다.
-
-    파일 신규 생성이 아닌 기존 파일 수정 경로에서도 타겟 누락을 방지한다.
-    """
+    """기존 .clangd에 --target이 빠져 있으면 보완한다."""
     target = detect_target_from_cdb()
     if not target:
         return
@@ -340,6 +354,61 @@ def ensure_error_limit_in_add_flags(dry_run: bool = False) -> None:
         add_compile_add_flags({error_limit_flag})
 
 
+def ensure_default_includes_in_add_flags(dry_run: bool = False) -> None:
+    """기존 .clangd의 두 번째 문서(헤더 조건부)에 -include=linux/mm.h 및 -include=asm/pgtable.h가 빠져 있으면 보완한다."""
+    docs = load_clangd_docs()
+
+    # [클린업] 혹시 예전 버전의 스크립트 실행으로 첫 번째(글로벌) 문서에 강제 인클루드 찌꺼기가 남아있으면 제거
+    global_add = docs[0].get("CompileFlags", {}).get("Add", [])
+    if isinstance(global_add, list):
+        cleaned_add = [f for f in global_add if not f.startswith("-include=linux/mm.h") and not f.startswith("-include=asm/pgtable.h")]
+        if len(cleaned_add) != len(global_add):
+            print("글로벌 CompileFlags.Add에서 이전 헤더 강제 인클루드 찌꺼기 제거")
+            if not dry_run:
+                docs[0]["CompileFlags"]["Add"] = cleaned_add
+                save_clangd_docs(docs)
+
+    if not is_linux_kernel_repo():
+        return
+
+    default_includes = [
+        "-include=linux/mm.h",
+        "-include=asm/pgtable.h"
+    ]
+
+    # 두 번째 문서(헤더용 설정)가 없으면 추가
+    if len(docs) < 2:
+        docs.append({
+            "If": {
+                "PathMatch": [r".*\.h", r".*\.hpp"]
+            },
+            "CompileFlags": {
+                "Add": []
+            }
+        })
+
+    header_doc = docs[1]
+    if "CompileFlags" not in header_doc or header_doc["CompileFlags"] is None:
+        header_doc["CompileFlags"] = {}
+    if "Add" not in header_doc["CompileFlags"] or header_doc["CompileFlags"]["Add"] is None:
+        header_doc["CompileFlags"]["Add"] = []
+
+    existing_includes = header_doc["CompileFlags"]["Add"]
+    if isinstance(existing_includes, str):
+        existing_includes = [existing_includes]
+
+    missing_includes = sorted(list(set(default_includes) - set(existing_includes)))
+
+    if not missing_includes:
+        return
+
+    print(f"헤더 전용 CompileFlags.Add에 {missing_includes} 누락 → {'(dry-run) ' if dry_run else ''}추가")
+    if not dry_run:
+        header_doc["CompileFlags"]["Add"] = sorted(list(set(existing_includes) | set(default_includes)))
+        save_clangd_docs(docs)
+
+
+
 # ── clangd --check 실행 ──────────────────────────────────────────────────────
 
 # "unknown target ABI" 또는 "CreateTargetInfo() return null" 발생 시
@@ -349,11 +418,11 @@ _TARGET_ERROR_RE = re.compile(
 )
 
 
-def check_file(filepath: str) -> tuple[set[str], set[str], bool]:
-    """clangd --check로 에러 ID, unknown 플래그, 타겟 오버라이드 필요 여부를 수집.
+def check_file(filepath: str) -> tuple[set[str], set[str], set[str], bool]:
+    """clangd --check로 에러 ID, unknown 플래그, 실패한 tweak, 타겟 오버라이드 필요 여부를 수집.
 
     Returns:
-        (diagnostic_ids, unknown_flags, needs_target_override)
+        (diagnostic_ids, unknown_flags, failed_tweaks, needs_target_override)
     """
     print(f"  검사 중: {filepath}")
     result = subprocess.run(
@@ -372,10 +441,15 @@ def check_file(filepath: str) -> tuple[set[str], set[str], bool]:
         re.findall(r"(?:unknown|unused) argument[:\s]+'([^']+)'", output, re.IGNORECASE)
     )
 
+    # 실패한 tweak 패턴 (tweak: DefineOutline ==> FAIL) → Tweak.Remove 대상
+    failed_tweaks = set(
+        re.findall(r"tweak:\s*([a-zA-Z0-9_-]+)\s*==>\s*FAIL", output)
+    )
+
     # 타겟 ABI 오류 → CompileFlags.Add에 --target 추가 필요
     needs_target = bool(_TARGET_ERROR_RE.search(output))
 
-    return diag_ids, unknown_flags, needs_target
+    return diag_ids, unknown_flags, failed_tweaks, needs_target
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -395,6 +469,7 @@ def main():
     # 파일 신규/기존 여부 관계없이 --target 누락 여부를 항상 확인
     ensure_target_in_add_flags(dry_run=args.dry_run)
     ensure_error_limit_in_add_flags(dry_run=args.dry_run)
+    ensure_default_includes_in_add_flags(dry_run=args.dry_run)
 
     files_to_check = list(args.files)
 
@@ -410,12 +485,14 @@ def main():
     existing_suppress = get_existing_suppressions()
     existing_remove = get_existing_remove_flags()
     existing_add = get_existing_add_flags()
+    existing_remove_tweaks = get_existing_remove_tweaks()
     found_ids: set[str] = set()
     found_flags: set[str] = set()
     found_add_flags: set[str] = set()
+    found_tweaks: set[str] = set()
 
     for f in files_to_check:
-        diag_ids, unknown_flags, needs_target = check_file(f)
+        diag_ids, unknown_flags, failed_tweaks, needs_target = check_file(f)
 
         new_ids = diag_ids - existing_suppress - found_ids
         if new_ids:
@@ -426,6 +503,11 @@ def main():
         if new_flags:
             print(f"    새 unknown 플래그 발견: {new_flags}")
             found_flags.update(new_flags)
+
+        new_tweaks = failed_tweaks - existing_remove_tweaks - found_tweaks
+        if new_tweaks:
+            print(f"    새 실패한 Tweak 발견: {new_tweaks}")
+            found_tweaks.update(new_tweaks)
 
         if needs_target:
             target = detect_target_from_cdb()
@@ -441,7 +523,7 @@ def main():
                     file=sys.stderr,
                 )
 
-    changed = bool(found_ids or found_flags or found_add_flags)
+    changed = bool(found_ids or found_flags or found_add_flags or found_tweaks)
     if not changed:
         print("새로 추가할 항목 없음.")
         return
@@ -452,6 +534,8 @@ def main():
         print(f"CompileFlags.Remove에 추가할 플래그: {sorted(found_flags)}")
     if found_ids:
         print(f"Diagnostics.Suppress에 추가할 ID:   {sorted(found_ids)}")
+    if found_tweaks:
+        print(f"Tweak.Remove에 추가할 Tweak:         {sorted(found_tweaks)}")
 
     if args.dry_run:
         print("(dry-run: .clangd 변경 없음)")
@@ -463,6 +547,8 @@ def main():
         add_remove_flags(found_flags)
     if found_ids:
         add_suppressions(found_ids)
+    if found_tweaks:
+        add_remove_tweaks(found_tweaks)
 
     print(f"\n.clangd 업데이트 완료 → {CLANGD_CONFIG}")
     print("VSCode에서 'clangd: Restart language server'를 실행하세요.")
