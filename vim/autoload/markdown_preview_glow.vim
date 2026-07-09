@@ -22,7 +22,9 @@ function! markdown_preview_glow#open() abort
 
   enew
   silent file [Glow\ Preview]
-  let l:preview_width = max([20, winwidth(0) - &numberwidth - 3])
+  let l:max_width = get(g:, 'markdown_preview_glow_width', 110)
+  let l:preview_width = min([l:max_width, winwidth(0) - &numberwidth - 3])
+  let l:preview_width = max([20, l:preview_width])
   call term_start(['glow', '-w', string(l:preview_width), l:source_file], {
         \ 'curwin': v:true,
         \ 'term_finish': 'open',
