@@ -22,11 +22,16 @@ function! markdown_preview_glow#open() abort
 
   enew
   silent file [Glow\ Preview]
-  call term_start(['glow', l:source_file], {
+  let l:preview_width = max([20, winwidth(0) - &numberwidth - 3])
+  call term_start(['glow', '-w', string(l:preview_width), l:source_file], {
         \ 'curwin': v:true,
         \ 'term_finish': 'open',
         \ })
   let l:preview_bufnr = bufnr('%')
+  setlocal number norelativenumber nowrap foldcolumn=0
+  if exists('+signcolumn')
+    setlocal signcolumn=no
+  endif
   let b:markdown_preview_glow_source_bufnr = l:source_bufnr
   let b:markdown_preview_glow_source_line = l:source_line
   let b:markdown_preview_glow_source_last = l:source_last
