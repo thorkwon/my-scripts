@@ -137,13 +137,36 @@ function umount_hdd()
 
 function start_service()
 {
-	local LIST_SERVICE=($1)
+	local PARALLEL_SERVICE=()
+	local idx
+	local parallel_ser
+	local ser
 
-	for ser in ${LIST_SERVICE[@]}; do
+	for ser in "${LIST_SERVICE[@]}"; do
 		if ! systemctl cat "$ser" > /dev/null 2>&1; then
 			echo "Cannot find service: ${ser}"
 			return 1
 		fi
+	done
+
+	for idx in "${!LIST_SERVICE[@]}"; do
+		ser=${LIST_SERVICE[$idx]}
+		if [ "${LIST_START_MODE[$idx]}" = "parallel" ]; then
+			PARALLEL_SERVICE+=("$ser")
+			continue
+		fi
+
+		if [ "${#PARALLEL_SERVICE[@]}" -gt 0 ]; then
+			if ! sudo systemctl start "${PARALLEL_SERVICE[@]}"; then
+				echo "Failed to start parallel services: ${PARALLEL_SERVICE[*]}"
+				return 1
+			fi
+			for parallel_ser in "${PARALLEL_SERVICE[@]}"; do
+				echo "Start ${parallel_ser}"
+			done
+			PARALLEL_SERVICE=()
+		fi
+
 		if sudo systemctl start "$ser"; then
 			echo "Start ${ser}"
 		else
@@ -151,12 +174,20 @@ function start_service()
 			return 1
 		fi
 	done
+
+	if [ "${#PARALLEL_SERVICE[@]}" -gt 0 ]; then
+		if ! sudo systemctl start "${PARALLEL_SERVICE[@]}"; then
+			echo "Failed to start parallel services: ${PARALLEL_SERVICE[*]}"
+			return 1
+		fi
+		for parallel_ser in "${PARALLEL_SERVICE[@]}"; do
+			echo "Start ${parallel_ser}"
+		done
+	fi
 }
 
 function stop_service()
 {
-	local LIST_SERVICE=($1)
-
 	local FAILED=0
 	local idx=$(( ${#LIST_SERVICE[@]} -1 ))
 	while [[ -1 -lt idx ]]; do
@@ -178,9 +209,7 @@ function stop_service()
 
 function status_service()
 {
-	local LIST_SERVICE=($1)
-
-	for ser in ${LIST_SERVICE[@]}; do
+	for ser in "${LIST_SERVICE[@]}"; do
 		local CMD=`systemctl is-enabled ${ser} 2>&1 | grep Failed`
 		if [ -z "$CMD" ]; then
 			systemctl status ${ser} | grep -B8 Active: | \
@@ -191,13 +220,61 @@ function status_service()
 	done
 }
 
+function load_service_list()
+{
+	local MODE="serial"
+	local LINE=""
+	local LINE_NUMBER=0
+	local SERVICE=""
+
+	LIST_SERVICE=()
+	LIST_START_MODE=()
+
+	while IFS= read -r LINE || [ -n "$LINE" ]; do
+		((LINE_NUMBER++))
+		SERVICE="${LINE#"${LINE%%[![:space:]]*}"}"
+		SERVICE="${SERVICE%"${SERVICE##*[![:space:]]}"}"
+
+		case "$SERVICE" in
+			""|\#*)
+				continue
+				;;
+			"[serial]")
+				MODE="serial"
+				;;
+			"[parallel]")
+				MODE="parallel"
+				;;
+			\[*\])
+				echo "Unknown service list section at line ${LINE_NUMBER}: ${SERVICE}"
+				return 1
+				;;
+			*[[:space:]]*)
+				echo "Invalid service name at line ${LINE_NUMBER}: ${SERVICE}"
+				return 1
+				;;
+			*)
+				LIST_SERVICE+=("$SERVICE")
+				LIST_START_MODE+=("$MODE")
+				;;
+		esac
+	done < "${SCRIPTPATH}/service.list"
+
+	if [ "${#LIST_SERVICE[@]}" -eq 0 ]; then
+		echo "No services found in 'service.list'"
+		return 1
+	fi
+}
+
 if ! [ -f "${SCRIPTPATH}/service.list" ]; then
 	echo "Cannot access 'service.list': No such file"
 	echo "You have to create a file 'service.list' in the '$SCRIPTPATH'"
 	exit 1
 fi
 
-LIST_SERVICE="`cat ${SCRIPTPATH}/service.list|grep -v ^#`"
+if ! load_service_list; then
+	exit 1
+fi
 
 if [ $# -eq 0 ]; then
 	help
@@ -209,17 +286,17 @@ case $1 in
 			echo "Failed to mount required storage. Services will not be started."
 			exit 1
 		fi
-		start_service "${LIST_SERVICE[@]}" || exit 1
+		start_service || exit 1
 		;;
 	stop)
-		if ! stop_service "${LIST_SERVICE[@]}"; then
+		if ! stop_service; then
 			echo "Failed to stop services. Storage will remain mounted."
 			exit 1
 		fi
 		umount_hdd || exit 1
 		;;
 	restart)
-		if ! stop_service "${LIST_SERVICE[@]}"; then
+		if ! stop_service; then
 			echo "Failed to stop services. Storage will remain mounted."
 			exit 1
 		fi
@@ -228,10 +305,10 @@ case $1 in
 			echo "Failed to mount required storage. Services will not be started."
 			exit 1
 		fi
-		start_service "${LIST_SERVICE[@]}" || exit 1
+		start_service || exit 1
 		;;
 	status)
-		status_service "${LIST_SERVICE[@]}"
+		status_service
 		;;
 	*)
 		help
