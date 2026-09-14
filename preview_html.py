@@ -13,7 +13,7 @@ import os
 import urllib.parse
 from pathlib import Path
 
-DEFAULT_PORT = 52345
+DEFAULT_PORT = 33333
 DEFAULT_BIND = "127.0.0.1"
 
 MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
