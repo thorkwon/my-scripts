@@ -9,7 +9,6 @@ import html
 import http.server
 import io
 import json
-import os
 import urllib.parse
 from pathlib import Path
 
@@ -22,13 +21,14 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title} - Markdown Preview</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" id="hljs-light">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" id="hljs-dark" media="(prefers-color-scheme: dark)">
-  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked-highlight@2/lib/index.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.9.0/github-markdown.min.css" integrity="sha384-mYBW/AGDT6JhlmN0DlBZPH4430+HhjMvn1xOSmsXnjSDn+zfyMwb3xCym6H5ICgn" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github.min.css" integrity="sha384-eFTL69TLRZTkNfYZOLM+G04821K1qZao/4QLJbet1pP4tcF+fdXq/9CdqAbWRl/L" crossorigin="anonymous" id="hljs-light">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/github-dark.min.css" integrity="sha384-wH75j6z1lH97ZOpMOInqhgKzFkAInZPPSPlZpYKYTOqsaizPvhQZmAtLcPKXpLyH" crossorigin="anonymous" id="hljs-dark" media="(prefers-color-scheme: dark)">
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked-highlight@2.2.4/lib/index.umd.min.js" integrity="sha384-dwtONjF3cowPvkC6KHs+5ITqp94YuQV+1jCZ2KtfyqNQ+PDzf9EwbuPH8tcknWo5" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js" integrity="sha384-F/bZzf7p3Joyp5psL90p/p89AZJsndkSoGwRpXcZhleCWhd8SnRuoYo4d0yirjJp" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.8/dist/mermaid.min.js" integrity="sha384-N3QqR/7q+xm3BGX+CBbNI8AUmRRqcsDzToy+0z1NLDI0QmTKW8zvwLvqulJgk3dP" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.15/dist/purify.min.js" integrity="sha384-uUMu9JDY09vBzRf9SPcK2VgUj+W/70J6Soc+Dded5P474ElQ63iv9j5N3DE7Kp3N" crossorigin="anonymous"></script>
   <style>
     :root {{
       color-scheme: light dark;
@@ -137,7 +137,7 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
     let isRaw = false;
 
     function render() {{
-      if (window.marked) {{
+      if (window.marked && window.DOMPurify) {{
         const mh = window.markedHighlight && window.markedHighlight.markedHighlight;
         if (mh) {{
           marked.use(mh({{
@@ -153,7 +153,11 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
           }}));
         }}
         marked.setOptions({{ breaks: true, gfm: true }});
-        document.getElementById('rendered-content').innerHTML = marked.parse(rawMarkdown);
+        const renderedMarkdown = marked.parse(rawMarkdown);
+        document.getElementById('rendered-content').innerHTML = DOMPurify.sanitize(
+          renderedMarkdown,
+          {{ SANITIZE_NAMED_PROPS: true }}
+        );
 
         if (window.mermaid) {{
           try {{
@@ -235,8 +239,15 @@ class UTF8RequestHandler(http.server.SimpleHTTPRequestHandler):
         query_params = urllib.parse.parse_qs(parsed_url.query)
         is_raw = "raw" in query_params and query_params["raw"][0] in ("1", "true", "yes")
 
-        path = self.translate_path(self.path)
-        if not is_raw and os.path.isfile(path) and path.endswith((".md", ".markdown")):
+        try:
+            path = Path(self.translate_path(parsed_url.path)).resolve()
+            serve_root = Path(self.directory).resolve()
+            path.relative_to(serve_root)
+        except (OSError, RuntimeError, ValueError):
+            self.send_error(http.HTTPStatus.FORBIDDEN, "Path is outside the serving root")
+            return None
+
+        if not is_raw and path.is_file() and str(path).endswith((".md", ".markdown")):
             return self.render_markdown(path)
 
         return super().send_head()
