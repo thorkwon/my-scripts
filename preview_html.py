@@ -138,17 +138,20 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
 
     function render() {{
       if (window.marked) {{
-        marked.use(markedHighlight({{
-          langPrefix: 'hljs language-',
-          highlight(code, lang) {{
-            if (lang && hljs.getLanguage(lang)) {{
-              try {{
-                return hljs.highlight(code, {{ language: lang }}).value;
-              }} catch (e) {{}}
+        const mh = window.markedHighlight && window.markedHighlight.markedHighlight;
+        if (mh) {{
+          marked.use(mh({{
+            langPrefix: 'hljs language-',
+            highlight(code, lang) {{
+              if (lang && hljs.getLanguage(lang)) {{
+                try {{
+                  return hljs.highlight(code, {{ language: lang }}).value;
+                }} catch (e) {{}}
+              }}
+              return hljs.highlightAuto(code).value;
             }}
-            return hljs.highlightAuto(code).value;
-          }}
-        }}));
+          }}));
+        }}
         marked.setOptions({{ breaks: true, gfm: true }});
         document.getElementById('rendered-content').innerHTML = marked.parse(rawMarkdown);
 
