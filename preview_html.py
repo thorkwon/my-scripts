@@ -8,6 +8,7 @@ import argparse
 import html
 import http.server
 import io
+import ipaddress
 import json
 import urllib.parse
 from pathlib import Path
@@ -222,6 +223,20 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
 class UTF8RequestHandler(http.server.SimpleHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
+    def __init__(self, *args, allowed_ips=None, **kwargs):
+        self.allowed_ips = allowed_ips
+        super().__init__(*args, **kwargs)
+
+    def parse_request(self):
+        if not super().parse_request():
+            return False
+        if self.allowed_ips:
+            client_ip = ipaddress.ip_address(self.client_address[0])
+            if not client_ip.is_loopback and client_ip not in self.allowed_ips:
+                self.send_error(http.HTTPStatus.FORBIDDEN, "Client IP is not allowed")
+                return False
+        return True
+
     def guess_type(self, path):
         # .md 파일은 raw 요청 시 브라우저에서 다운로드되지 않고 텍스트로 바로 보이도록 text/plain 지정
         if path.endswith((".md", ".markdown")):
@@ -303,25 +318,39 @@ def run():
         default=DEFAULT_BIND,
         help=f"바인딩 주소 (기본값: {DEFAULT_BIND})",
     )
-    parser.add_argument(
+    access_group = parser.add_mutually_exclusive_group()
+    access_group.add_argument(
         "--public",
         action="store_true",
         default=False,
         help="모든 네트워크 인터페이스에서 접근 허용 (0.0.0.0 바인딩)",
     )
+    access_group.add_argument(
+        "--allow-ip",
+        type=ipaddress.IPv4Address,
+        action="append",
+        default=None,
+        metavar="IP",
+        help="지정한 클라이언트 IPv4와 localhost만 허용 (반복 지정 가능, 0.0.0.0 바인딩)",
+    )
     args = parser.parse_args()
 
     serve_dir = Path(args.directory).expanduser().resolve() if args.directory else Path.cwd()
-    bind_addr = "0.0.0.0" if args.public else args.bind
+    bind_addr = "0.0.0.0" if args.public or args.allow_ip else args.bind
+    allowed_ips = set(args.allow_ip) if args.allow_ip else None
 
     def handler_factory(*h_args, **h_kwargs):
-        return UTF8RequestHandler(*h_args, directory=str(serve_dir), **h_kwargs)
+        return UTF8RequestHandler(
+            *h_args, directory=str(serve_dir), allowed_ips=allowed_ips, **h_kwargs
+        )
 
     http.server.ThreadingHTTPServer.allow_reuse_address = True
 
     with http.server.ThreadingHTTPServer((bind_addr, args.port), handler_factory) as httpd:
         print(f" Serving HTTP on {bind_addr} port {args.port} ...")
         print(f" Root directory : {serve_dir}")
+        if allowed_ips:
+            print(f" Allowed clients: localhost, {', '.join(map(str, args.allow_ip))}")
         print(" Press Ctrl+C to stop.")
         try:
             httpd.serve_forever()
