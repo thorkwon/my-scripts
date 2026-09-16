@@ -124,6 +124,7 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
       <span>{filename}</span>
     </div>
     <div class="preview-actions">
+      <a class="preview-btn" href="{parent_url}" title="상위 경로로 이동">..</a>
       <button class="preview-btn" id="toggleViewBtn" onclick="toggleView()">Raw 보기</button>
       <button class="preview-btn" onclick="copyRaw()">복사</button>
       <a class="preview-btn" href="?raw=1">원본(Raw) 링크</a>
@@ -276,11 +277,17 @@ class UTF8RequestHandler(http.server.SimpleHTTPRequestHandler):
             return None
 
         filename = Path(file_path).name
+        serve_root = Path(self.directory).resolve()
+        parent_path = Path(file_path).parent.relative_to(serve_root)
+        parent_url = "/"
+        if parent_path.parts:
+            parent_url += urllib.parse.quote(parent_path.as_posix(), safe="/") + "/"
         # 스크립트 태그 탈출 방지
         safe_json = json.dumps(content).replace("</", "<\\/")
         rendered_html = MD_VIEWER_TEMPLATE.format(
             title=html.escape(filename),
             filename=html.escape(filename),
+            parent_url=html.escape(parent_url, quote=True),
             escaped_content=html.escape(content),
             md_json=safe_json,
         )
