@@ -10,6 +10,7 @@ import http.server
 import io
 import ipaddress
 import json
+import os
 import urllib.parse
 from pathlib import Path
 
@@ -124,7 +125,6 @@ MD_VIEWER_TEMPLATE = """<!DOCTYPE html>
       <span>{filename}</span>
     </div>
     <div class="preview-actions">
-      <a class="preview-btn" href="{parent_url}" title="상위 경로로 이동">..</a>
       <button class="preview-btn" id="toggleViewBtn" onclick="toggleView()">Raw 보기</button>
       <button class="preview-btn" onclick="copyRaw()">복사</button>
       <a class="preview-btn" href="?raw=1">원본(Raw) 링크</a>
@@ -249,6 +249,63 @@ class UTF8RequestHandler(http.server.SimpleHTTPRequestHandler):
             ctype += "; charset=utf-8"
         return ctype
 
+    def list_directory(self, path):
+        """디렉터리 목록을 표시하고 하위 경로에서는 상위 링크를 제공한다."""
+        try:
+            entries = os.listdir(path)
+        except OSError:
+            self.send_error(
+                http.HTTPStatus.NOT_FOUND, "No permission to list directory"
+            )
+            return None
+
+        entries.sort(key=str.lower)
+        try:
+            display_path = urllib.parse.unquote(self.path, errors="surrogatepass")
+        except UnicodeDecodeError:
+            display_path = urllib.parse.unquote(self.path)
+        display_path = html.escape(display_path, quote=False)
+        title = f"Directory listing for {display_path}"
+
+        rows = [
+            "<!DOCTYPE HTML>",
+            '<html lang="en">',
+            "<head>",
+            '<meta charset="utf-8">',
+            f"<title>{title}</title>\n</head>",
+            f"<body>\n<h1>{title}</h1>",
+            "<hr>\n<ul>",
+        ]
+
+        serve_root = Path(self.directory).resolve()
+        if Path(path).resolve() != serve_root:
+            rows.append('<li><a href="../">..</a></li>')
+
+        for name in entries:
+            full_path = os.path.join(path, name)
+            display_name = link_name = name
+            if os.path.isdir(full_path):
+                display_name = name + "/"
+                link_name = name + "/"
+            if os.path.islink(full_path):
+                display_name = name + "@"
+            rows.append(
+                '<li><a href="%s">%s</a></li>'
+                % (
+                    urllib.parse.quote(link_name, errors="surrogatepass"),
+                    html.escape(display_name, quote=False),
+                )
+            )
+
+        rows.append("</ul>\n<hr>\n</body>\n</html>\n")
+        encoded = "\n".join(rows).encode("utf-8", "surrogateescape")
+
+        self.send_response(http.HTTPStatus.OK)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.end_headers()
+        return io.BytesIO(encoded)
+
     def send_head(self):
         # 쿼리 파라미터 확인 (?raw=1 여부)
         parsed_url = urllib.parse.urlsplit(self.path)
@@ -277,17 +334,11 @@ class UTF8RequestHandler(http.server.SimpleHTTPRequestHandler):
             return None
 
         filename = Path(file_path).name
-        serve_root = Path(self.directory).resolve()
-        parent_path = Path(file_path).parent.relative_to(serve_root)
-        parent_url = "/"
-        if parent_path.parts:
-            parent_url += urllib.parse.quote(parent_path.as_posix(), safe="/") + "/"
         # 스크립트 태그 탈출 방지
         safe_json = json.dumps(content).replace("</", "<\\/")
         rendered_html = MD_VIEWER_TEMPLATE.format(
             title=html.escape(filename),
             filename=html.escape(filename),
-            parent_url=html.escape(parent_url, quote=True),
             escaped_content=html.escape(content),
             md_json=safe_json,
         )
